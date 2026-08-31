@@ -1,0 +1,11 @@
+export { default as HomePage } from './HomePage';
+export { default as PoliticsPage } from './PoliticsPage';
+export { default as WorldPage } from './WorldPage';
+export { default as BusinessPage } from './BusinessPage';
+export { default as HealthPage } from './HealthPage';
+export { default as TechPage } from './TechPage';
+export { default as SportPage } from './SportPage';
+export { default as WeatherPage } from './WeatherPage';
+export { default as SearchPage } from './SearchPage';
+export { default as ArticlePage } from './ArticlePage';
+export { default as NotFoundPage } from './NotFoundPage';
