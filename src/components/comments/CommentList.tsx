@@ -1,45 +1,52 @@
-import { Box, Divider, Skeleton, Stack, Typography } from '@mui/material';
+import { useState } from 'react';
+import { Box, Button, Divider, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { useAuthStore } from '@/store';
-import { useComments, useDeleteComment } from '@/features/comments';
+import { useComments, useDeleteComment, useCommentRealtime } from '@/features/comments';
+import type { CommentSort } from '@/features/comments';
 import ErrorState from '@/components/common/ErrorState';
 import CommentItem from './CommentItem';
 import CommentForm from './CommentForm';
+import CommentSkeleton from './CommentSkeleton';
+import LoginToComment from './LoginToComment';
 
 interface CommentListProps {
   articleId: string;
 }
 
-function CommentSkeleton() {
-  return (
-    <Stack direction="row" spacing={1.5} sx={{ py: 2 }}>
-      <Skeleton variant="circular" width={32} height={32} />
-      <Box sx={{ flex: 1 }}>
-        <Skeleton variant="text" width="30%" />
-        <Skeleton variant="text" width="20%" height={16} />
-        <Skeleton variant="text" width="90%" />
-      </Box>
-    </Stack>
-  );
-}
-
 function CommentList({ articleId }: CommentListProps) {
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
-  const { comments, loading, error } = useComments(articleId);
+  const [sort, setSort] = useState<CommentSort>('newest');
+  const { comments, totalCount, loading, error, hasMore, loadMore, isLoadingMore } = useComments(articleId, sort);
   const { deleteComment, isLoading: isDeleting } = useDeleteComment(articleId);
+
+  // Public reads stay live even while logged out — only posting/editing/
+  // deleting require auth, enforced server-side regardless of who is
+  // subscribed to this article's realtime channel.
+  useCommentRealtime(articleId);
 
   return (
     <Box sx={{ mt: 5 }}>
-      <Typography variant="h5" sx={{ mb: 2 }}>
-        Comments
-      </Typography>
+      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+        <Typography variant="h5">Discussion {!loading && `(${totalCount})`}</Typography>
+        {!loading && comments.length > 1 && (
+          <ToggleButtonGroup
+            value={sort}
+            exclusive
+            size="small"
+            onChange={(_e, value: CommentSort | null) => value && setSort(value)}
+            aria-label="Comment sort order"
+          >
+            <ToggleButton value="newest" aria-label="Newest first">
+              Newest
+            </ToggleButton>
+            <ToggleButton value="oldest" aria-label="Oldest first">
+              Oldest
+            </ToggleButton>
+          </ToggleButtonGroup>
+        )}
+      </Stack>
 
-      {isAuthenticated ? (
-        <CommentForm articleId={articleId} />
-      ) : (
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Sign in to join the discussion.
-        </Typography>
-      )}
+      {isAuthenticated ? <CommentForm articleId={articleId} sort={sort} /> : <LoginToComment />}
 
       {loading && (
         <Stack divider={<Divider />}>
@@ -57,17 +64,26 @@ function CommentList({ articleId }: CommentListProps) {
       )}
 
       {!loading && !error && comments.length > 0 && (
-        <Stack divider={<Divider />}>
-          {comments.map((comment) => (
-            <CommentItem
-              key={comment.id}
-              comment={comment}
-              articleId={articleId}
-              onDelete={deleteComment}
-              isDeleting={isDeleting}
-            />
-          ))}
-        </Stack>
+        <>
+          <Stack divider={<Divider />}>
+            {comments.map((comment) => (
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                articleId={articleId}
+                onDelete={deleteComment}
+                isDeleting={isDeleting}
+              />
+            ))}
+          </Stack>
+          {hasMore && (
+            <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <Button onClick={loadMore} disabled={isLoadingMore} variant="outlined">
+                {isLoadingMore ? 'Loading…' : 'Load more comments'}
+              </Button>
+            </Box>
+          )}
+        </>
       )}
     </Box>
   );

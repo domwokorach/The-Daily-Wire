@@ -15,6 +15,11 @@ export default asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = createComment(parsedArticle.articleId, req.user, parsedBody.params.body);
+  const { status, body } = createComment(
+    parsedArticle.articleId,
+    req.user,
+    parsedBody.params.body,
+    parsedBody.params.clientMutationId,
+  );
   res.status(status).json(body);
 });

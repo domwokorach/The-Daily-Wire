@@ -1,8 +1,11 @@
 import { useState, type FormEvent } from 'react';
-import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import { Alert, Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
 import { useLogin } from '@/features/auth';
+import { useSaveArticle, toSaveArticlePayload } from '@/features/savedArticles';
+import { getArticleBySlug } from '@/features/news/services/newsService';
 import { ROUTES } from '@/config/routes';
+import { sanitizeReturnTo, extractArticleIdFromReturnTo } from '@/utils/returnTo';
 
 interface LocationState {
   from?: { pathname: string };
@@ -11,7 +14,9 @@ interface LocationState {
 function LoginForm() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { login, isLoading, error } = useLogin();
+  const { save } = useSaveArticle();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,8 +26,30 @@ function LoginForm() {
     event.preventDefault();
     try {
       await login({ email, password });
+
+      const returnTo = sanitizeReturnTo(searchParams.get('returnTo'));
       const state = location.state as LocationState | null;
-      navigate(state?.from?.pathname ?? ROUTES.HOME, { replace: true });
+      const target = returnTo ?? state?.from?.pathname ?? ROUTES.HOME;
+
+      // Complete a pending "Save" that was interrupted by the login
+      // redirect — the article is resolved from the same in-session
+      // article cache the article page already reads from, not re-fetched.
+      let savedAfterLogin = false;
+      if (returnTo && searchParams.get('action') === 'save') {
+        const articleId = extractArticleIdFromReturnTo(returnTo);
+        const article = articleId ? await getArticleBySlug(articleId) : undefined;
+        if (article) {
+          try {
+            await save(toSaveArticlePayload(article));
+            savedAfterLogin = true;
+          } catch {
+            // Sign-in still succeeded; the article page's own Save button
+            // still works normally if this best-effort save fails.
+          }
+        }
+      }
+
+      navigate(target, { replace: true, state: savedAfterLogin ? { savedAfterLogin: true } : undefined });
     } catch {
       // error already surfaced via `error` from useLogin
     }

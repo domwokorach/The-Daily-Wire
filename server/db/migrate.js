@@ -51,6 +51,21 @@ const STATEMENTS = [
   )`,
   `CREATE INDEX IF NOT EXISTS idx_comments_article_id ON comments(article_id, created_at)`,
 
+  `CREATE TABLE IF NOT EXISTS saved_articles (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    article_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    url TEXT,
+    image TEXT,
+    source_name TEXT,
+    category TEXT,
+    published_at TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(user_id, article_id)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_saved_articles_user_id ON saved_articles(user_id, created_at)`,
+
   `CREATE TABLE IF NOT EXISTS notification_preferences (
     user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     categories_csv TEXT NOT NULL DEFAULT '',
@@ -113,10 +128,24 @@ const STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS idx_subscription_email_log_subscription_id ON subscription_email_log(subscription_id)`,
 ];
 
+/** SQLite has no `ADD COLUMN IF NOT EXISTS`, and this app's migrations are
+ * plain `CREATE TABLE IF NOT EXISTS` (no version tracking) — so a column
+ * added to an already-shipped table needs an explicit existence check
+ * before `ALTER TABLE`, run once per table outside the `CREATE TABLE`
+ * statements above. */
+function ensureColumn(db, table, column, definition) {
+  const existing = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (existing.some((col) => col.name === column)) return;
+  db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+}
+
 export function migrate() {
   const db = getDb();
   const run = db.transaction(() => {
     for (const statement of STATEMENTS) db.exec(statement);
+    // Moderation-ready comment status, added after `comments` already
+    // shipped — existing rows default to 'visible' automatically.
+    ensureColumn(db, 'comments', 'status', "TEXT NOT NULL DEFAULT 'visible'");
   });
   run();
 }

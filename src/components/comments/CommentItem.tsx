@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Avatar, Box, IconButton, Menu, MenuItem, Stack, Typography } from '@mui/material';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { Avatar, Box, Stack, Typography } from '@mui/material';
 import { useAuthStore } from '@/store';
 import { useUpdateComment } from '@/features/comments';
 import type { Comment } from '@/features/comments';
 import { timeAgo, joinMeta } from '@/utils/formatDate';
 import CommentEditForm from './CommentEditForm';
+import CommentActions from './CommentActions';
 
 interface CommentItemProps {
   comment: Comment;
@@ -18,7 +18,6 @@ function CommentItem({ comment, articleId, onDelete, isDeleting }: CommentItemPr
   const userId = useAuthStore((state) => state.user?.id);
   const { updateComment, isLoading: isSaving } = useUpdateComment(articleId);
 
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const isOwner = Boolean(userId && comment.author.id === userId);
@@ -29,42 +28,21 @@ function CommentItem({ comment, articleId, onDelete, isDeleting }: CommentItemPr
   };
 
   return (
-    <Stack direction="row" spacing={1.5} sx={{ py: 2 }}>
+    <Stack direction="row" spacing={1.5} sx={{ py: 2, opacity: comment.pending ? 0.6 : 1 }}>
       <Avatar sx={{ width: 32, height: 32, fontSize: '0.85rem', bgcolor: 'surfaceAlt.main' }}>
         {comment.author.displayName[0]?.toUpperCase() ?? '?'}
       </Avatar>
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="subtitle2">{comment.author.displayName}</Typography>
-          {isOwner && !isEditing && (
-            <>
-              <IconButton size="small" aria-label="Comment actions" onClick={(e) => setAnchorEl(e.currentTarget)}>
-                <MoreVertIcon fontSize="small" />
-              </IconButton>
-              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-                <MenuItem
-                  onClick={() => {
-                    setIsEditing(true);
-                    setAnchorEl(null);
-                  }}
-                >
-                  Edit
-                </MenuItem>
-                <MenuItem
-                  disabled={isDeleting}
-                  onClick={() => {
-                    setAnchorEl(null);
-                    onDelete(comment.id);
-                  }}
-                >
-                  Delete
-                </MenuItem>
-              </Menu>
-            </>
+          {isOwner && !isEditing && !comment.pending && (
+            <CommentActions onEdit={() => setIsEditing(true)} onDelete={() => onDelete(comment.id)} isDeleting={isDeleting} />
           )}
         </Stack>
         <Typography variant="caption" color="text.disabled">
-          {joinMeta(timeAgo(comment.createdAt), comment.edited && 'Edited')}
+          {comment.pending
+            ? 'Posting…'
+            : joinMeta(timeAgo(comment.createdAt), comment.edited && 'Edited')}
         </Typography>
         {isEditing ? (
           <Box sx={{ mt: 1 }}>

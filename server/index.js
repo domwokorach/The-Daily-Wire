@@ -10,6 +10,7 @@ import { articleCommentsRouter, commentByIdRouter } from './api/comments/index.j
 import notificationsRouter from './api/notifications/index.js';
 import subscriptionsRouter from './api/subscriptions/index.js';
 import webhooksRouter from './api/webhooks/index.js';
+import savedArticlesRouter from './api/saved-articles/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { getEnv } from './config/env.js';
 import { migrate } from './db/migrate.js';
@@ -38,6 +39,7 @@ app.use('/api/comments', commentByIdRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/subscriptions', subscriptionsRouter);
 app.use('/api/webhooks', webhooksRouter);
+app.use('/api/saved-articles', savedArticlesRouter);
 
 startNewsletterScheduler();
 

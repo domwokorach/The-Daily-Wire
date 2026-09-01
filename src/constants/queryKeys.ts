@@ -43,7 +43,8 @@ export const authKeys = {
 /** Centralised TanStack Query key factory for article comments. */
 export const commentKeys = {
   all: ['comments'] as const,
-  byArticle: (articleId: string) => ['comments', 'article', articleId] as const,
+  byArticle: (articleId: string, sort: 'newest' | 'oldest' = 'newest') =>
+    ['comments', 'article', articleId, sort] as const,
 };
 
 /** Centralised TanStack Query key factory for notification preferences. */
@@ -57,4 +58,11 @@ export const subscriptionKeys = {
   all: ['subscription'] as const,
   me: () => ['subscription', 'me'] as const,
   managed: (token: string) => ['subscription', 'managed', token] as const,
+};
+
+/** Centralised TanStack Query key factory for saved articles. */
+export const savedArticleKeys = {
+  all: ['savedArticles'] as const,
+  list: () => ['savedArticles', 'list'] as const,
+  check: (articleId: string) => ['savedArticles', 'check', articleId] as const,
 };

@@ -48,6 +48,7 @@ function AccountMenu() {
         </Avatar>
       </IconButton>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+        <MenuItem onClick={() => go(ROUTES.SAVED)}>Saved Articles</MenuItem>
         <MenuItem onClick={() => go(ROUTES.PROFILE)}>Profile</MenuItem>
         <MenuItem onClick={() => go(ROUTES.SETTINGS)}>Settings</MenuItem>
         <Divider />

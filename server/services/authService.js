@@ -12,6 +12,7 @@ import {
   toSafeUser,
 } from '../repositories/userRepository.js';
 import { createSession, deleteAllSessionsForUser } from '../repositories/sessionRepository.js';
+import { deleteAllForUser as deleteAllSavedArticlesForUser } from '../repositories/savedArticleRepository.js';
 import {
   createPasswordResetToken,
   consumePasswordResetToken,
@@ -131,7 +132,11 @@ export async function deleteAccount(userId, currentPassword) {
   if (!matches) {
     return { status: 401, body: { error: true, code: 'INVALID_PASSWORD', message: 'Your password is incorrect.' } };
   }
+  // Comments: keep the content, anonymize the author ("Deleted User").
+  // Saved articles: private to the account, so they're deleted outright
+  // rather than orphaned — this must stay in sync with the Terms of Service.
   anonymizeUserComments(userId);
+  deleteAllSavedArticlesForUser(userId);
   deleteAllSessionsForUser(userId);
   deleteUser(userId);
   return { status: 200, body: { message: 'Account deleted.' } };

@@ -1,14 +1,19 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link as RouterLink } from 'react-router-dom';
 import { Alert, Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
 import { useRegister } from '@/features/auth';
+import { useSaveArticle, toSaveArticlePayload } from '@/features/savedArticles';
+import { getArticleBySlug } from '@/features/news/services/newsService';
 import { ROUTES } from '@/config/routes';
+import { sanitizeReturnTo, extractArticleIdFromReturnTo } from '@/utils/returnTo';
 
 const TODAY = new Date().toISOString().slice(0, 10);
 
 function RegisterForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { register, isLoading, error } = useRegister();
+  const { save } = useSaveArticle();
 
   const [fullName, setFullName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
@@ -21,7 +26,26 @@ function RegisterForm() {
     event.preventDefault();
     try {
       await register({ fullName, dateOfBirth, email, mobileNumber, password, confirmPassword });
-      navigate(ROUTES.HOME, { replace: true });
+
+      const returnTo = sanitizeReturnTo(searchParams.get('returnTo'));
+      const target = returnTo ?? ROUTES.HOME;
+
+      let savedAfterLogin = false;
+      if (returnTo && searchParams.get('action') === 'save') {
+        const articleId = extractArticleIdFromReturnTo(returnTo);
+        const article = articleId ? await getArticleBySlug(articleId) : undefined;
+        if (article) {
+          try {
+            await save(toSaveArticlePayload(article));
+            savedAfterLogin = true;
+          } catch {
+            // Account creation still succeeded; the article page's own
+            // Save button still works normally if this best-effort save fails.
+          }
+        }
+      }
+
+      navigate(target, { replace: true, state: savedAfterLogin ? { savedAfterLogin: true } : undefined });
     } catch {
       // error already surfaced via `error` from useRegister
     }

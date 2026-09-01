@@ -20,6 +20,7 @@ import {
   VerifyEmailPage,
   ProfilePage,
   SettingsPage,
+  SavedArticlesPage,
   SubscribePage,
   SubscriptionConfirmedPage,
   UnsubscribePage,
@@ -60,6 +61,14 @@ function AppRoutes() {
           element={
             <AuthGuard>
               <SettingsPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path={ROUTES.SAVED}
+          element={
+            <AuthGuard>
+              <SavedArticlesPage />
             </AuthGuard>
           }
         />

@@ -8,6 +8,15 @@ jest.mock('@/services/apiClient', () => ({
   apiClient: { get: jest.fn() },
   getErrorMessage: (error: unknown, fallback: string) =>
     error instanceof Error ? error.message : fallback,
+  buildQueryString: (params: Record<string, unknown>) => {
+    const search = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value === undefined || value === null || value === '') continue;
+      search.set(key, String(value));
+    }
+    const qs = search.toString();
+    return qs ? `?${qs}` : '';
+  },
 }));
 
 jest.mock('@/config/appConfig', () => ({
@@ -36,17 +45,18 @@ describe('useComments', () => {
     const comments = [
       { id: 'c1', articleId: 'article-1', author: { id: 'u1', displayName: 'Ada' }, body: 'Hi', createdAt: '', updatedAt: '', edited: false },
     ];
-    (apiClient.get as jest.Mock).mockResolvedValue({ comments });
+    (apiClient.get as jest.Mock).mockResolvedValue({ comments, nextCursor: null, totalCount: comments.length });
 
     const { result } = renderHook(() => useComments('article-1'), { wrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.comments).toEqual(comments);
+    expect(result.current.totalCount).toBe(1);
     expect(result.current.error).toBeNull();
   });
 
   test('surfaces a friendly error on failure', async () => {
-    (apiClient.get as jest.Mock).mockRejectedValue(new Error('Unable to load comments right now.'));
+    (apiClient.get as jest.Mock).mockRejectedValue(new Error('Comments are temporarily unavailable.'));
 
     const { result } = renderHook(() => useComments('article-1'), { wrapper });
 
