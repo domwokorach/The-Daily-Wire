@@ -26,7 +26,7 @@ export function parseArticleIdParam(raw) {
 }
 
 /** Only a minimal normalized snapshot is ever persisted — the frontend
- * supplies it (NewsData.io has no per-article lookup endpoint the server
+ * supplies it (NewsAPI.org has no per-article lookup endpoint the server
  * could re-derive this from), but every field is sanitized/length-capped
  * and unknown fields are dropped, so nothing arbitrary reaches the
  * database under the authenticated user's row. */

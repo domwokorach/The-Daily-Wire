@@ -12,6 +12,6 @@ export default asyncHandler(async (req, res) => {
   // `userId` always comes from the authenticated session (`requireAuth`),
   // never from the request body — the client cannot save on another
   // account's behalf.
-  const { status, body } = saveArticle(req.user.id, parsed.params);
+  const { status, body } = await saveArticle(req.user.id, parsed.params);
   res.status(status).json(body);
 });

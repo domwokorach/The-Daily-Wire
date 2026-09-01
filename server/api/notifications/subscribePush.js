@@ -9,6 +9,6 @@ export default asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = subscribePush(req.user.id, parsed.params.subscription);
+  const { status, body } = await subscribePush(req.user.id, parsed.params.subscription);
   res.status(status).json(body);
 });

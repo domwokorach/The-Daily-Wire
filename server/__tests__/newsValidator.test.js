@@ -1,13 +1,13 @@
-import { parseHeadlinesQuery, parseEverythingQuery } from '../validators/newsValidator.js';
+import { parseHeadlinesQuery, parseEverythingQuery, parseSourcesQuery } from '../validators/newsValidator.js';
 
 describe('parseHeadlinesQuery', () => {
   test('falls back to defaults for missing/invalid values', () => {
     const result = parseHeadlinesQuery({});
     expect(result.category).toBeUndefined();
-    expect(result.pageSize).toBe(10);
+    expect(result.pageSize).toBe(20);
   });
 
-  test('rejects a category not in the NewsData.io allowlist', () => {
+  test('rejects a category not in the NewsAPI.org allowlist', () => {
     const result = parseHeadlinesQuery({ category: 'not-a-real-category' });
     expect(result.category).toBeUndefined();
   });
@@ -17,9 +17,9 @@ describe('parseHeadlinesQuery', () => {
     expect(result.category).toBe('business');
   });
 
-  test('clamps pageSize to the free-tier ceiling of 10', () => {
+  test('clamps pageSize to the app ceiling of 20', () => {
     const result = parseHeadlinesQuery({ pageSize: '50' });
-    expect(result.pageSize).toBe(10);
+    expect(result.pageSize).toBe(20);
   });
 });
 
@@ -45,22 +45,46 @@ describe('parseEverythingQuery', () => {
     expect(world.params.section).toBe('world');
   });
 
-  test('passes the `page` cursor token through as opaque text', () => {
-    const result = parseEverythingQuery({ q: 'NHS', page: 'opaque-cursor-token-123' });
-    expect(result.params.page).toBe('opaque-cursor-token-123');
+  test('parses `page` as a numeric page number, defaulting to 1', () => {
+    const withPage = parseEverythingQuery({ q: 'NHS', page: '3' });
+    expect(withPage.params.page).toBe(3);
+
+    const withoutPage = parseEverythingQuery({ q: 'NHS' });
+    expect(withoutPage.params.page).toBe(1);
   });
 
-  test('converts a recent `from` date into a `timeframe` (hours ago)', () => {
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const result = parseEverythingQuery({ q: 'NHS', from: oneHourAgo });
-    expect(result.ok).toBe(true);
-    expect(result.params.timeframe).toBe('1');
+  test('defaults sortBy to publishedAt and rejects an unrecognised value', () => {
+    const result = parseEverythingQuery({ q: 'NHS', sortBy: 'not-a-real-sort' });
+    expect(result.params.sortBy).toBe('publishedAt');
   });
 
-  test('ignores a `from` date older than the 48h free-tier window rather than erroring', () => {
-    const longAgo = new Date(Date.now() - 100 * 60 * 60 * 1000).toISOString();
-    const result = parseEverythingQuery({ q: 'NHS', from: longAgo });
-    expect(result.ok).toBe(true);
-    expect(result.params.timeframe).toBeUndefined();
+  test('accepts a valid sortBy', () => {
+    const result = parseEverythingQuery({ q: 'NHS', sortBy: 'popularity' });
+    expect(result.params.sortBy).toBe('popularity');
+  });
+
+  test('passes through valid `from`/`to` ISO dates', () => {
+    const from = '2026-08-01';
+    const to = '2026-08-31';
+    const result = parseEverythingQuery({ q: 'NHS', from, to });
+    expect(result.params.from).toBe(from);
+    expect(result.params.to).toBe(to);
+  });
+});
+
+describe('parseSourcesQuery', () => {
+  test('accepts no category', () => {
+    const result = parseSourcesQuery({});
+    expect(result.category).toBeUndefined();
+  });
+
+  test('accepts a valid source category', () => {
+    const result = parseSourcesQuery({ category: 'technology' });
+    expect(result.category).toBe('technology');
+  });
+
+  test('rejects an invalid source category', () => {
+    const result = parseSourcesQuery({ category: 'not-a-real-category' });
+    expect(result.category).toBeUndefined();
   });
 });

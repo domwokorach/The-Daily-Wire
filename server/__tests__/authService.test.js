@@ -1,6 +1,4 @@
-process.env.DB_PATH = ':memory:';
-
-import { migrate } from '../db/migrate.js';
+import { hasTestDb, resetTestDb } from './helpers/testDb.js';
 import { register, login } from '../services/authService.js';
 import { findSessionByToken } from '../repositories/sessionRepository.js';
 import { findUserByEmail } from '../repositories/userRepository.js';
@@ -13,14 +11,16 @@ const PAYLOAD = {
   password: 'correct horse battery',
 };
 
-beforeAll(() => {
-  migrate();
+const maybeDescribe = hasTestDb ? describe : describe.skip;
+
+beforeAll(async () => {
+  if (hasTestDb) await resetTestDb();
 });
 
-describe('register', () => {
+maybeDescribe('register', () => {
   test('hashes the password rather than storing it in plain text', async () => {
     await register(PAYLOAD, 'jest');
-    const row = findUserByEmail(PAYLOAD.email);
+    const row = await findUserByEmail(PAYLOAD.email);
     expect(row.password_hash).toBeDefined();
     expect(row.password_hash).not.toBe(PAYLOAD.password);
   });
@@ -28,7 +28,7 @@ describe('register', () => {
   test('issues a valid session on registration', async () => {
     const result = await register({ ...PAYLOAD, email: 'session-check@example.com' }, 'jest');
     expect(result.session.token).toBeDefined();
-    const session = findSessionByToken(result.session.token);
+    const session = await findSessionByToken(result.session.token);
     expect(session).toBeTruthy();
   });
 
@@ -38,7 +38,7 @@ describe('register', () => {
   });
 });
 
-describe('login', () => {
+maybeDescribe('login', () => {
   test('rejects an incorrect password without revealing whether the account exists', async () => {
     const result = await login({ email: PAYLOAD.email, password: 'wrong-password' }, 'jest');
     expect(result.status).toBe(401);

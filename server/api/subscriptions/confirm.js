@@ -9,6 +9,6 @@ export default asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = confirmSubscription(parsed.params.token);
+  const { status, body } = await confirmSubscription(parsed.params.token);
   res.status(status).json(body);
 });

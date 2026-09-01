@@ -12,7 +12,7 @@ interface UseEverythingNewsResult {
   refetch: () => void;
 }
 
-/** Generic NewsData.io-backed query (search and/or section) — single page,
+/** Generic NewsAPI.org-backed query (search and/or section) — single page,
  * no pagination. `useSectionNews` and `useNewsSearch` build on the same
  * service function for their own shapes. */
 export function useEverythingNews(

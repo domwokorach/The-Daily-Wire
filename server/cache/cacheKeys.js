@@ -1,7 +1,6 @@
 // Cache keys are derived from the *validated* request params (never from the
 // raw upstream query string, and never including the API key) — one stable
-// key per distinct client request, regardless of which upstream endpoint
-// (top-headlines vs. its everything-fallback) actually served it.
+// key per distinct client request.
 function serialize(params) {
   return Object.entries(params)
     .filter(([, value]) => value !== undefined && value !== null && value !== '')
@@ -16,6 +15,10 @@ export function newsHeadlinesKey(params) {
 
 export function newsEverythingKey(params) {
   return `news:everything:${serialize(params)}`;
+}
+
+export function newsSourcesKey(params) {
+  return `news:sources:${serialize(params)}`;
 }
 
 // Coordinates are rounded before keying so that requests within ~1m of each

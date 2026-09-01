@@ -17,13 +17,15 @@ const NEWS_DEFAULTS = {
 
 // The server already normalizes and dedupes every article (see
 // `server/services/newsService.js`'s pipeline) — this is never a raw
-// provider response. `nextPageToken` is NewsData.io's opaque `nextPage`
-// cursor, passed straight through — never a page number.
+// provider response. `page`/`pageSize`/`hasMore` are NewsAPI.org's
+// numeric-page pagination, normalized by the server.
 interface NewsApiEnvelope {
   status: string;
   totalResults: number;
   articles: ServerArticle[];
-  nextPageToken?: string;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
 }
 
 // `country`/`language` are intentionally absent here — this platform is
@@ -36,8 +38,8 @@ export interface NewsQueryOptions {
 export interface NewsResult {
   articles: Article[];
   totalResults: number;
+  page: number;
   pageSize: number;
-  nextPageToken?: string;
   hasMore: boolean;
 }
 
@@ -66,9 +68,9 @@ async function fetchFrom(endpoint: string, params: QueryParams): Promise<NewsRes
   return {
     articles,
     totalResults: response.totalResults ?? articles.length,
-    pageSize,
-    nextPageToken: response.nextPageToken,
-    hasMore: Boolean(response.nextPageToken),
+    page: response.page ?? 1,
+    pageSize: response.pageSize ?? pageSize,
+    hasMore: response.hasMore ?? false,
   };
 }
 
@@ -81,8 +83,8 @@ export function getArticles(options: NewsQueryOptions = {}): Promise<Article[]> 
 
 /**
  * `top-headlines?country=gb&category=`. For business/health/tech/sport —
- * politics/world use `getSectionNews` (routed through NewsData.io's own
- * native category via `/api/news/everything`) instead.
+ * politics/world use `getSectionNews` (routed through an editorial
+ * UK-focused query via `/api/news/everything`) instead.
  */
 export function getArticlesByCategory(
   category: ArticleCategory,
@@ -96,16 +98,16 @@ export function getArticlesByCategory(
 
 export interface EverythingQueryOptions extends NewsQueryOptions {
   section?: ArticleCategory;
-  /** Opaque `nextPage` cursor token from a previous `NewsResult`, never a
-   * page number. */
-  page?: string;
+  /** 1-based page number, never an opaque cursor. */
+  page?: number;
 }
 
 /**
- * NewsData.io-backed article discovery — search plus `section` (which now
- * maps directly to a native NewsData.io category, including politics/world).
- * For real News-category feeds (business/health/tech/sport) use
- * `getArticlesByCategory`.
+ * NewsAPI.org-backed article discovery — search plus `section`. Sections
+ * with a real top-headlines category (business/health/tech/sport) are
+ * routed server-side to that category; politics/world go through an
+ * editorial UK-focused search query instead. For the four category-backed
+ * feeds prefer `getArticlesByCategory` directly.
  */
 export function getEverything(
   query: string | undefined,
@@ -116,6 +118,7 @@ export function getEverything(
     return Promise.resolve({
       articles: [],
       totalResults: 0,
+      page: 1,
       pageSize: options.pageSize ?? APP_CONFIG.defaultPageSize,
       hasMore: false,
     });
@@ -129,8 +132,9 @@ export function getEverything(
   });
 }
 
-/** Politics/World — served via NewsData.io's native category, same as
- * every other section, just through the search endpoint. */
+/** Politics/World — served via an editorial UK-focused search query
+ * (NewsAPI.org has no native category for either), same endpoint as every
+ * other section. */
 export function getSectionNews(
   section: ArticleCategory,
   options: NewsQueryOptions = {},
@@ -164,7 +168,7 @@ export async function getBreakingNews(): Promise<Article[]> {
 }
 
 /**
- * NewsData.io has no article-detail endpoint, so this resolves from
+ * NewsAPI.org has no article-detail endpoint, so this resolves from
  * articles already seen this session (list views, search, etc).
  */
 export function getArticleBySlug(id: string): Promise<Article | undefined> {

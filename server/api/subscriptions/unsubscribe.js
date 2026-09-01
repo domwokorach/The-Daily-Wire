@@ -9,7 +9,7 @@ export const unsubscribeRoute = asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = unsubscribeByToken(parsed.params.token, parsed.params.categories);
+  const { status, body } = await unsubscribeByToken(parsed.params.token, parsed.params.categories);
   res.status(status).json(body);
 });
 
@@ -20,6 +20,6 @@ export const resubscribeRoute = asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = resubscribeByToken(parsed.params.token);
+  const { status, body } = await resubscribeByToken(parsed.params.token);
   res.status(status).json(body);
 });

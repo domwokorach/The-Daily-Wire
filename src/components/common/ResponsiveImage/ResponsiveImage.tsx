@@ -25,7 +25,7 @@ export interface ResponsiveImageProps {
   alt: string;
   variant?: ImageVariant;
 
-  /** Forward-compatible plumbing — no current provider (NewsData.io,
+  /** Forward-compatible plumbing — no current provider (NewsAPI.org,
    * API-Football) returns multiple resolutions, so these are inert unless
    * a future image proxy/CDN populates them. */
   srcSet?: string;

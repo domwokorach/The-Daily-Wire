@@ -36,18 +36,18 @@ export default asyncHandler(async (req, res) => {
 
   switch (type) {
     case 'email.delivered':
-      if (providerEmailId) updateDeliveryStatusByProviderId(providerEmailId, 'delivered');
+      if (providerEmailId) await updateDeliveryStatusByProviderId(providerEmailId, 'delivered');
       break;
     case 'email.bounced':
-      if (providerEmailId) updateDeliveryStatusByProviderId(providerEmailId, 'bounced');
-      if (email) handleBounce(email);
+      if (providerEmailId) await updateDeliveryStatusByProviderId(providerEmailId, 'bounced');
+      if (email) await handleBounce(email);
       break;
     case 'email.failed':
-      if (providerEmailId) updateDeliveryStatusByProviderId(providerEmailId, 'failed');
+      if (providerEmailId) await updateDeliveryStatusByProviderId(providerEmailId, 'failed');
       break;
     case 'email.complained':
-      if (providerEmailId) updateDeliveryStatusByProviderId(providerEmailId, 'complained');
-      if (email) handleComplaint(email);
+      if (providerEmailId) await updateDeliveryStatusByProviderId(providerEmailId, 'complained');
+      if (email) await handleComplaint(email);
       break;
     default:
       break;

@@ -33,7 +33,7 @@ function toStory(article) {
   };
 }
 
-/** NewsData Articles → Normalize → UK Filter → Deduplicate happens upstream
+/** NewsAPI Articles → Normalize → UK Filter → Deduplicate happens upstream
  * in `getHeadlines`/`runPipeline` (server/services/newsService.js). This
  * stage is Rank → Select — editorial ranking, never a raw provider feed
  * mailed as-is. Diversifies by topic (round-robin over section priority,
@@ -67,12 +67,11 @@ export function rankAndSelectDigestStories(articles, limit = DIGEST_STORY_COUNT)
 }
 
 async function fetchRankedStories(limit) {
-  const apiKey = getEnv().newsDataApiKey;
-  if (!apiKey) {
-    console.error('[newsletterService] NEWSDATA_API_KEY is not configured — digest not sent.');
+  if (!getEnv().newsApiKey) {
+    console.error('[newsletterService] NEWS_API_KEY is not configured — digest not sent.');
     return [];
   }
-  const { status, body } = await getHeadlines({}, apiKey);
+  const { status, body } = await getHeadlines({ pageSize: 20 });
   if (status !== 200) return [];
   return rankAndSelectDigestStories(body.articles ?? [], limit);
 }
@@ -86,16 +85,16 @@ async function dispatchToSubscribers(column, buildIdempotencyKey, sendOne) {
   let sentCount = 0;
 
   for (;;) {
-    const page = listActiveSubscribersByColumn(column, { afterId, limit: BATCH_SIZE });
+    const page = await listActiveSubscribersByColumn(column, { afterId, limit: BATCH_SIZE });
     if (page.length === 0) break;
 
     for (const subscriber of page) {
       const idempotencyKey = buildIdempotencyKey(subscriber);
-      if (hasDeliveryRecord(idempotencyKey)) continue;
+      if (await hasDeliveryRecord(idempotencyKey)) continue;
 
       try {
         const providerEmailId = await sendOne(subscriber);
-        recordDelivery({ subscriptionId: subscriber.id, idempotencyKey, providerEmailId, status: 'sent' });
+        await recordDelivery({ subscriptionId: subscriber.id, idempotencyKey, providerEmailId, status: 'sent' });
         sentCount += 1;
       } catch (err) {
         console.error('[newsletterService] send failed for subscriber', subscriber.id, err);
@@ -116,8 +115,8 @@ export async function sendDailyDigestToSubscribers(date = new Date().toISOString
   return dispatchToSubscribers(
     'daily_digest',
     (subscriber) => `daily-digest/${date}/${subscriber.id}`,
-    (subscriber) => {
-      const managementToken = createManagementToken(subscriber.id);
+    async (subscriber) => {
+      const managementToken = await createManagementToken(subscriber.id);
       return sendDailyDigest(subscriber.email, { date, stories, managementToken });
     },
   );
@@ -138,8 +137,8 @@ export async function sendWeeklyDigestToSubscribers(weekLabel = isoWeekLabel()) 
   return dispatchToSubscribers(
     'weekly_digest',
     (subscriber) => `weekly-digest/${weekLabel}/${subscriber.id}`,
-    (subscriber) => {
-      const managementToken = createManagementToken(subscriber.id);
+    async (subscriber) => {
+      const managementToken = await createManagementToken(subscriber.id);
       return sendWeeklyDigest(subscriber.email, { weekLabel, stories, managementToken });
     },
   );
@@ -156,8 +155,8 @@ export async function sendBreakingNewsToSubscribers(alert) {
   return dispatchToSubscribers(
     'breaking_news',
     (subscriber) => `breaking/${alert.id}/${subscriber.id}`,
-    (subscriber) => {
-      const managementToken = createManagementToken(subscriber.id);
+    async (subscriber) => {
+      const managementToken = await createManagementToken(subscriber.id);
       return sendBreakingNewsEmail(subscriber.email, {
         headline: alert.headline,
         summary: alert.summary,

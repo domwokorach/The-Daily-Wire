@@ -1,7 +1,7 @@
 import { palette } from '@/theme/palette';
 
 /** Editorial placeholder shown when an article has no image, or its image
- * fails to load. Shared between the news normalizer (`urlToImage: null`)
+ * fails to load. Shared between the news normalizer (`image: null`)
  * and `ResponsiveImage` (a broken/hotlink-blocked `<img>`). */
 const PAPER_COLOR = palette.background!.paper!;
 const ACCENT_COLOR = (palette.primary as { main: string }).main;

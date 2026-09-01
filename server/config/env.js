@@ -3,7 +3,7 @@
 // process was actually started with.
 export function getEnv() {
   return {
-    newsDataApiKey: process.env.NEWSDATA_API_KEY || '',
+    newsApiKey: process.env.NEWS_API_KEY || '',
     weatherApiKey: process.env.WEATHER_API_KEY || '',
     sportsApiKey: process.env.SPORTS_API_KEY || '',
     sportsApiBaseUrl: process.env.SPORTS_API_BASE_URL || '',
@@ -11,7 +11,8 @@ export function getEnv() {
     port: Number(process.env.PORT) || 8787,
     isProduction: process.env.NODE_ENV === 'production',
 
-    dbPath: process.env.DB_PATH || 'server/data/app.db',
+    databaseUrl: process.env.POSTGRES_URL || process.env.DATABASE_URL || '',
+    cronSecret: process.env.CRON_SECRET || '',
     sessionCookieName: process.env.SESSION_COOKIE_NAME || 'dw_session',
     sessionSecret: process.env.SESSION_SECRET || '',
     sessionTtlDays: Number(process.env.SESSION_TTL_DAYS) || 30,
@@ -26,6 +27,5 @@ export function getEnv() {
     vapidSubject: process.env.VAPID_SUBJECT || 'mailto:support@example.com',
 
     resendWebhookSecret: process.env.RESEND_WEBHOOK_SECRET || '',
-    newsletterCronEnabled: process.env.NEWSLETTER_CRON_ENABLED === 'true',
   };
 }

@@ -9,6 +9,6 @@ export default asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = updatePreferences(req.user.id, parsed.params);
+  const { status, body } = await updatePreferences(req.user.id, parsed.params);
   res.status(status).json(body);
 });

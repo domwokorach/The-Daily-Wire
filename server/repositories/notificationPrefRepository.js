@@ -1,9 +1,10 @@
-import { getDb } from '../db/connection.js';
+import { query } from '../db/connection.js';
 
 const DEFAULTS = { categoriesCsv: '', pushEnabled: false, pushSubscription: null };
 
-export function getPreferences(userId) {
-  const row = getDb().prepare('SELECT * FROM notification_preferences WHERE user_id = ?').get(userId);
+export async function getPreferences(userId) {
+  const { rows } = await query('SELECT * FROM notification_preferences WHERE user_id = $1', [userId]);
+  const row = rows[0];
   if (!row) return { userId, ...DEFAULTS };
   return {
     userId,
@@ -13,51 +14,48 @@ export function getPreferences(userId) {
   };
 }
 
-export function upsertPreferences(userId, { categories, pushEnabled }) {
-  const db = getDb();
+export async function upsertPreferences(userId, { categories, pushEnabled }) {
   const categoriesCsv = categories.join(',');
-  db.prepare(
+  await query(
     `INSERT INTO notification_preferences (user_id, categories_csv, push_enabled, updated_at)
-     VALUES (?, ?, ?, datetime('now'))
+     VALUES ($1, $2, $3, now())
      ON CONFLICT(user_id) DO UPDATE SET
        categories_csv = excluded.categories_csv,
        push_enabled = excluded.push_enabled,
-       updated_at = datetime('now')`,
-  ).run(userId, categoriesCsv, pushEnabled ? 1 : 0);
+       updated_at = now()`,
+    [userId, categoriesCsv, Boolean(pushEnabled)],
+  );
   return getPreferences(userId);
 }
 
-export function setPushSubscription(userId, subscription) {
-  const db = getDb();
-  db.prepare(
+export async function setPushSubscription(userId, subscription) {
+  await query(
     `INSERT INTO notification_preferences (user_id, push_enabled, push_subscription_json, updated_at)
-     VALUES (?, 1, ?, datetime('now'))
+     VALUES ($1, TRUE, $2, now())
      ON CONFLICT(user_id) DO UPDATE SET
-       push_enabled = 1,
+       push_enabled = TRUE,
        push_subscription_json = excluded.push_subscription_json,
-       updated_at = datetime('now')`,
-  ).run(userId, JSON.stringify(subscription));
+       updated_at = now()`,
+    [userId, JSON.stringify(subscription)],
+  );
 }
 
-export function clearPushSubscription(userId) {
-  getDb()
-    .prepare(
-      `UPDATE notification_preferences SET push_enabled = 0, push_subscription_json = NULL, updated_at = datetime('now')
-       WHERE user_id = ?`,
-    )
-    .run(userId);
+export async function clearPushSubscription(userId) {
+  await query(
+    `UPDATE notification_preferences SET push_enabled = FALSE, push_subscription_json = NULL, updated_at = now()
+     WHERE user_id = $1`,
+    [userId],
+  );
 }
 
-export function listPushSubscribers() {
-  return getDb()
-    .prepare(
-      `SELECT user_id, categories_csv, push_subscription_json FROM notification_preferences
-       WHERE push_enabled = 1 AND push_subscription_json IS NOT NULL`,
-    )
-    .all()
-    .map((row) => ({
-      userId: row.user_id,
-      categories: row.categories_csv ? row.categories_csv.split(',') : [],
-      subscription: JSON.parse(row.push_subscription_json),
-    }));
+export async function listPushSubscribers() {
+  const { rows } = await query(
+    `SELECT user_id, categories_csv, push_subscription_json FROM notification_preferences
+     WHERE push_enabled = TRUE AND push_subscription_json IS NOT NULL`,
+  );
+  return rows.map((row) => ({
+    userId: row.user_id,
+    categories: row.categories_csv ? row.categories_csv.split(',') : [],
+    subscription: JSON.parse(row.push_subscription_json),
+  }));
 }

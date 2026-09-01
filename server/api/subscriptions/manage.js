@@ -9,7 +9,7 @@ export const getManagedSubscriptionRoute = asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = manageByToken(parsed.params.token);
+  const { status, body } = await manageByToken(parsed.params.token);
   res.status(status).json(body);
 });
 
@@ -26,7 +26,7 @@ export const updateManagedSubscriptionRoute = asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = updatePreferencesByToken(parsedToken.params.token, parsedPrefs.params.preferences);
+  const { status, body } = await updatePreferencesByToken(parsedToken.params.token, parsedPrefs.params.preferences);
   res.status(status).json(body);
 });
 

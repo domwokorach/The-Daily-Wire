@@ -1,6 +1,5 @@
 import crypto from 'node:crypto';
-import { getDb } from '../db/connection.js';
-import { toIsoUtc } from '../utils/sqliteDate.js';
+import { query } from '../db/connection.js';
 import { generateToken, hashToken } from '../utils/tokens.js';
 
 const CONFIRMATION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -34,159 +33,155 @@ function normalizeEmail(email) {
   return email.trim().toLowerCase();
 }
 
-export function findSubscriptionByEmail(email) {
-  return getDb()
-    .prepare('SELECT * FROM subscriptions WHERE email = ? COLLATE NOCASE')
-    .get(normalizeEmail(email));
+export async function findSubscriptionByEmail(email) {
+  const { rows } = await query('SELECT * FROM subscriptions WHERE email = $1', [normalizeEmail(email)]);
+  return rows[0] || null;
 }
 
-export function findSubscriptionById(id) {
-  return getDb().prepare('SELECT * FROM subscriptions WHERE id = ?').get(id);
+export async function findSubscriptionById(id) {
+  const { rows } = await query('SELECT * FROM subscriptions WHERE id = $1', [id]);
+  return rows[0] || null;
 }
 
-export function findSubscriptionByUserId(userId) {
-  return getDb().prepare('SELECT * FROM subscriptions WHERE user_id = ?').get(userId);
+export async function findSubscriptionByUserId(userId) {
+  const { rows } = await query('SELECT * FROM subscriptions WHERE user_id = $1', [userId]);
+  return rows[0] || null;
 }
 
-export function createSubscription({ email, userId = null, preferences }) {
-  const db = getDb();
+export async function createSubscription({ email, userId = null, preferences }) {
   const id = crypto.randomUUID();
   const columns = ['id', 'user_id', 'email', 'status'];
-  const placeholders = ['@id', '@userId', '@email', "'pending'"];
-  const params = { id, userId, email: normalizeEmail(email) };
+  const values = [id, userId, normalizeEmail(email), 'pending'];
 
   for (const key of PREFERENCE_KEYS) {
-    const column = PREFERENCE_COLUMNS[key];
-    columns.push(column);
-    placeholders.push(`@${key}`);
-    params[key] = preferences[key] ? 1 : 0;
+    columns.push(PREFERENCE_COLUMNS[key]);
+    values.push(Boolean(preferences[key]));
   }
 
-  db.prepare(`INSERT INTO subscriptions (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`).run(params);
+  const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
+  await query(`INSERT INTO subscriptions (${columns.join(', ')}) VALUES (${placeholders})`, values);
   return findSubscriptionById(id);
 }
 
-export function updatePreferences(id, preferences) {
-  const db = getDb();
-  const assignments = PREFERENCE_KEYS.map((key) => `${PREFERENCE_COLUMNS[key]} = @${key}`).join(', ');
-  const params = { id };
-  for (const key of PREFERENCE_KEYS) params[key] = preferences[key] ? 1 : 0;
+export async function updatePreferences(id, preferences) {
+  const values = PREFERENCE_KEYS.map((key) => Boolean(preferences[key]));
+  const assignments = PREFERENCE_KEYS.map((key, i) => `${PREFERENCE_COLUMNS[key]} = $${i + 1}`).join(', ');
+  values.push(id);
 
-  db.prepare(`UPDATE subscriptions SET ${assignments}, updated_at = datetime('now') WHERE id = @id`).run(params);
+  await query(`UPDATE subscriptions SET ${assignments}, updated_at = now() WHERE id = $${values.length}`, values);
   return findSubscriptionById(id);
 }
 
-export function linkUserId(id, userId) {
-  getDb().prepare(`UPDATE subscriptions SET user_id = ?, updated_at = datetime('now') WHERE id = ?`).run(userId, id);
+export async function linkUserId(id, userId) {
+  await query(`UPDATE subscriptions SET user_id = $1, updated_at = now() WHERE id = $2`, [userId, id]);
 }
 
-export function activateSubscription(id) {
-  getDb()
-    .prepare(
-      `UPDATE subscriptions
-       SET status = 'active', email_verified_at = datetime('now'), subscribed_at = datetime('now'), updated_at = datetime('now')
-       WHERE id = ?`,
-    )
-    .run(id);
+export async function activateSubscription(id) {
+  await query(
+    `UPDATE subscriptions
+     SET status = 'active', email_verified_at = now(), subscribed_at = now(), updated_at = now()
+     WHERE id = $1`,
+    [id],
+  );
   return findSubscriptionById(id);
 }
 
-export function setStatus(id, status) {
-  const unsubscribedAtClause = status === 'unsubscribed' ? `, unsubscribed_at = datetime('now')` : '';
-  getDb()
-    .prepare(`UPDATE subscriptions SET status = ?${unsubscribedAtClause}, updated_at = datetime('now') WHERE id = ?`)
-    .run(status, id);
+export async function setStatus(id, status) {
+  const unsubscribedAtClause = status === 'unsubscribed' ? `, unsubscribed_at = now()` : '';
+  await query(`UPDATE subscriptions SET status = $1${unsubscribedAtClause}, updated_at = now() WHERE id = $2`, [status, id]);
   return findSubscriptionById(id);
 }
 
-export function touchConfirmationSentAt(id) {
-  getDb()
-    .prepare(`UPDATE subscriptions SET last_confirmation_sent_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`)
-    .run(id);
+export async function touchConfirmationSentAt(id) {
+  await query(`UPDATE subscriptions SET last_confirmation_sent_at = now(), updated_at = now() WHERE id = $1`, [id]);
 }
 
 export function isWithinResendCooldown(subscription) {
   if (!subscription.last_confirmation_sent_at) return false;
-  const lastSent = new Date(`${subscription.last_confirmation_sent_at.replace(' ', 'T')}Z`).getTime();
+  const lastSent = subscription.last_confirmation_sent_at.getTime();
   return Date.now() - lastSent < RESEND_COOLDOWN_MS;
 }
 
-export function createConfirmationToken(subscriptionId) {
+export async function createConfirmationToken(subscriptionId) {
   const { raw, hashed } = generateToken();
   const expiresAt = new Date(Date.now() + CONFIRMATION_TTL_MS).toISOString();
-  getDb()
-    .prepare('INSERT INTO subscription_confirmation_tokens (id, subscription_id, expires_at) VALUES (?, ?, ?)')
-    .run(hashed, subscriptionId, expiresAt);
+  await query(
+    'INSERT INTO subscription_confirmation_tokens (id, subscription_id, expires_at) VALUES ($1, $2, $3)',
+    [hashed, subscriptionId, expiresAt],
+  );
   return raw;
 }
 
-export function consumeConfirmationToken(rawToken) {
+export async function consumeConfirmationToken(rawToken) {
   const hashed = hashToken(rawToken);
-  const db = getDb();
-  const row = db.prepare('SELECT * FROM subscription_confirmation_tokens WHERE id = ?').get(hashed);
+  const { rows } = await query('SELECT * FROM subscription_confirmation_tokens WHERE id = $1', [hashed]);
+  const row = rows[0];
   if (!row || row.used_at || new Date(row.expires_at).getTime() <= Date.now()) return null;
-  db.prepare(`UPDATE subscription_confirmation_tokens SET used_at = datetime('now') WHERE id = ?`).run(hashed);
+  await query(`UPDATE subscription_confirmation_tokens SET used_at = now() WHERE id = $1`, [hashed]);
   return row;
 }
 
-export function createManagementToken(subscriptionId) {
+export async function createManagementToken(subscriptionId) {
   const { raw, hashed } = generateToken();
-  getDb()
-    .prepare('INSERT INTO subscription_management_tokens (id, subscription_id) VALUES (?, ?)')
-    .run(hashed, subscriptionId);
+  await query('INSERT INTO subscription_management_tokens (id, subscription_id) VALUES ($1, $2)', [hashed, subscriptionId]);
   return raw;
 }
 
-export function findByManagementToken(rawToken) {
+export async function findByManagementToken(rawToken) {
   const hashed = hashToken(rawToken);
-  const row = getDb()
-    .prepare('SELECT * FROM subscription_management_tokens WHERE id = ? AND revoked_at IS NULL')
-    .get(hashed);
+  const { rows } = await query(
+    'SELECT * FROM subscription_management_tokens WHERE id = $1 AND revoked_at IS NULL',
+    [hashed],
+  );
+  const row = rows[0];
   if (!row) return null;
   return findSubscriptionById(row.subscription_id);
 }
 
-export function revokeManagementTokens(subscriptionId) {
-  getDb()
-    .prepare(`UPDATE subscription_management_tokens SET revoked_at = datetime('now') WHERE subscription_id = ? AND revoked_at IS NULL`)
-    .run(subscriptionId);
+export async function revokeManagementTokens(subscriptionId) {
+  await query(
+    `UPDATE subscription_management_tokens SET revoked_at = now() WHERE subscription_id = $1 AND revoked_at IS NULL`,
+    [subscriptionId],
+  );
 }
 
 const CATEGORY_COLUMN_ALLOWLIST = new Set(['daily_digest', 'weekly_digest', 'breaking_news']);
 
-export function listActiveSubscribersByColumn(column, { afterId = null, limit = 200 } = {}) {
+export async function listActiveSubscribersByColumn(column, { afterId = null, limit = 200 } = {}) {
   if (!CATEGORY_COLUMN_ALLOWLIST.has(column)) {
     throw new Error(`listActiveSubscribersByColumn: unsupported column "${column}"`);
   }
-  const db = getDb();
   if (afterId) {
-    return db
-      .prepare(
-        `SELECT * FROM subscriptions WHERE status = 'active' AND ${column} = 1 AND id > ? ORDER BY id ASC LIMIT ?`,
-      )
-      .all(afterId, limit);
+    const { rows } = await query(
+      `SELECT * FROM subscriptions WHERE status = 'active' AND ${column} = TRUE AND id > $1 ORDER BY id ASC LIMIT $2`,
+      [afterId, limit],
+    );
+    return rows;
   }
-  return db
-    .prepare(`SELECT * FROM subscriptions WHERE status = 'active' AND ${column} = 1 ORDER BY id ASC LIMIT ?`)
-    .all(limit);
+  const { rows } = await query(
+    `SELECT * FROM subscriptions WHERE status = 'active' AND ${column} = TRUE ORDER BY id ASC LIMIT $1`,
+    [limit],
+  );
+  return rows;
 }
 
-export function hasDeliveryRecord(idempotencyKey) {
-  return Boolean(getDb().prepare('SELECT 1 FROM subscription_email_log WHERE idempotency_key = ?').get(idempotencyKey));
+export async function hasDeliveryRecord(idempotencyKey) {
+  const { rows } = await query('SELECT 1 FROM subscription_email_log WHERE idempotency_key = $1', [idempotencyKey]);
+  return rows.length > 0;
 }
 
-export function recordDelivery({ subscriptionId, emailType, articleId = null, idempotencyKey, providerEmailId = null, status = 'sent' }) {
-  const db = getDb();
+export async function recordDelivery({ subscriptionId, emailType, articleId = null, idempotencyKey, providerEmailId = null, status = 'sent' }) {
   const id = crypto.randomUUID();
-  db.prepare(
+  await query(
     `INSERT INTO subscription_email_log (id, subscription_id, email_type, article_id, idempotency_key, provider_email_id, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT(idempotency_key) DO NOTHING`,
-  ).run(id, subscriptionId, emailType, articleId, idempotencyKey, providerEmailId, status);
+    [id, subscriptionId, emailType, articleId, idempotencyKey, providerEmailId, status],
+  );
 }
 
-export function updateDeliveryStatusByProviderId(providerEmailId, status) {
-  getDb().prepare('UPDATE subscription_email_log SET status = ? WHERE provider_email_id = ?').run(status, providerEmailId);
+export async function updateDeliveryStatusByProviderId(providerEmailId, status) {
+  await query('UPDATE subscription_email_log SET status = $1 WHERE provider_email_id = $2', [status, providerEmailId]);
 }
 
 export function toPublicSubscription(subscription) {
@@ -194,14 +189,16 @@ export function toPublicSubscription(subscription) {
   const preferences = {};
   for (const key of PREFERENCE_KEYS) preferences[key] = Boolean(subscription[PREFERENCE_COLUMNS[key]]);
 
+  const toIso = (value) => (value instanceof Date ? value.toISOString() : value);
+
   return {
     id: subscription.id,
     email: subscription.email,
     status: subscription.status,
     preferences,
     emailVerified: Boolean(subscription.email_verified_at),
-    subscribedAt: toIsoUtc(subscription.subscribed_at),
-    unsubscribedAt: toIsoUtc(subscription.unsubscribed_at),
-    createdAt: toIsoUtc(subscription.created_at),
+    subscribedAt: toIso(subscription.subscribed_at),
+    unsubscribedAt: toIso(subscription.unsubscribed_at),
+    createdAt: toIso(subscription.created_at),
   };
 }

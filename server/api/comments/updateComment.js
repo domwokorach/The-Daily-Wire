@@ -9,6 +9,6 @@ export default asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = updateComment(req.comment.id, parsed.params.body);
+  const { status, body } = await updateComment(req.comment.id, parsed.params.body);
   res.status(status).json(body);
 });

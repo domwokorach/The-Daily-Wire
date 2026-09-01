@@ -14,6 +14,6 @@ export default asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = subscribe(parsed.params, req.user?.id ?? null);
+  const { status, body } = await subscribe(parsed.params, req.user?.id ?? null);
   res.status(status).json(body);
 });

@@ -1,14 +1,15 @@
-process.env.DB_PATH = ':memory:';
-
-import { migrate } from '../db/migrate.js';
+import { hasTestDb, resetTestDb } from './helpers/testDb.js';
 import { register } from '../services/authService.js';
 import { saveArticle, removeSaved, checkSaved, listSaved } from '../services/savedArticleService.js';
 import { parseSaveArticleBody } from '../validators/savedArticleValidator.js';
 
 let user;
 
+const maybeDescribe = hasTestDb ? describe : describe.skip;
+
 beforeAll(async () => {
-  migrate();
+  if (!hasTestDb) return;
+  await resetTestDb();
   const result = await register(
     {
       fullName: 'Saver',
@@ -32,32 +33,32 @@ const SNAPSHOT = {
   publishedAt: '2026-01-01T09:00:00Z',
 };
 
-describe('saveArticle', () => {
-  test('creates a saved article snapshot for the authenticated user', () => {
-    const { status, body } = saveArticle(user.id, SNAPSHOT);
+maybeDescribe('saveArticle', () => {
+  test('creates a saved article snapshot for the authenticated user', async () => {
+    const { status, body } = await saveArticle(user.id, SNAPSHOT);
     expect(status).toBe(201);
     expect(body.saved).toBe(true);
     expect(body.savedArticle.articleId).toBe('article-1');
     expect(body.savedArticle.title).toBe(SNAPSHOT.title);
   });
 
-  test('saving the same article again returns the existing row instead of duplicating', () => {
-    const { status, body } = saveArticle(user.id, SNAPSHOT);
+  test('saving the same article again returns the existing row instead of duplicating', async () => {
+    const { status, body } = await saveArticle(user.id, SNAPSHOT);
     expect(status).toBe(200);
     expect(body.alreadySaved).toBe(true);
 
-    const list = listSaved(user.id, {});
+    const list = await listSaved(user.id, {});
     expect(list.body.savedArticles.filter((a) => a.articleId === 'article-1')).toHaveLength(1);
   });
 
-  test('checkSaved reflects the current state', () => {
-    expect(checkSaved(user.id, 'article-1').body.saved).toBe(true);
-    expect(checkSaved(user.id, 'article-999').body.saved).toBe(false);
+  test('checkSaved reflects the current state', async () => {
+    expect((await checkSaved(user.id, 'article-1')).body.saved).toBe(true);
+    expect((await checkSaved(user.id, 'article-999')).body.saved).toBe(false);
   });
 
-  test('removing a saved article makes it disappear from the list', () => {
-    removeSaved(user.id, 'article-1');
-    expect(checkSaved(user.id, 'article-1').body.saved).toBe(false);
+  test('removing a saved article makes it disappear from the list', async () => {
+    await removeSaved(user.id, 'article-1');
+    expect((await checkSaved(user.id, 'article-1')).body.saved).toBe(false);
   });
 });
 

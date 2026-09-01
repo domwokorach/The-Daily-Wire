@@ -4,24 +4,24 @@ import { findUserById } from '../repositories/userRepository.js';
 
 /** Resolves the session cookie into `req.user`/`req.session` when present and
  * valid. Never rejects the request — use `requireAuth` to enforce presence. */
-export function optionalAuth(req, _res, next) {
+export async function optionalAuth(req, _res, next) {
   const token = req.cookies?.[getEnv().sessionCookieName];
   if (!token) return next();
 
-  const session = findSessionByToken(token);
+  const session = await findSessionByToken(token);
   if (!session) return next();
 
-  const user = findUserById(session.user_id);
+  const user = await findUserById(session.user_id);
   if (!user) return next();
 
-  touchSession(session.id);
+  await touchSession(session.id);
   req.session = session;
   req.user = user;
   next();
 }
 
-export function requireAuth(req, res, next) {
-  optionalAuth(req, res, () => {
+export async function requireAuth(req, res, next) {
+  await optionalAuth(req, res, () => {
     if (!req.user) {
       res.status(401).json({ error: true, code: 'UNAUTHENTICATED', message: 'Sign in required.' });
       return;

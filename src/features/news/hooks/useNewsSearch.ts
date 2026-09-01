@@ -14,17 +14,16 @@ interface UseNewsSearchResult {
   loadMore: () => void;
 }
 
-/** Pagination is cursor-based (NewsData.io's opaque `nextPage` token), not
- * numeric — `pageParam` is `undefined` for the first page, then whatever
- * token the previous page returned. */
+/** Pagination is numeric (NewsAPI.org's `page`/`pageSize`) — `pageParam` is
+ * `1` for the first page, then `lastPage.page + 1` while `hasMore` holds. */
 export function useNewsSearch(query: string): UseNewsSearchResult {
   const trimmed = query.trim();
 
   const { data, isLoading, isError, error, hasNextPage, fetchNextPage, refetch } = useInfiniteQuery({
     queryKey: newsKeys.search(trimmed),
-    queryFn: ({ pageParam }: { pageParam: string | undefined }) => searchNews(trimmed, { page: pageParam }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextPageToken,
+    queryFn: ({ pageParam }: { pageParam: number }) => searchNews(trimmed, { page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
     enabled: Boolean(trimmed),
     staleTime: 5 * 60 * 1000,
     retry: 1,

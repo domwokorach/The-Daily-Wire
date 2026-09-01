@@ -1,68 +1,68 @@
 import crypto from 'node:crypto';
-import { getDb } from '../db/connection.js';
-import { toIsoUtc } from '../utils/sqliteDate.js';
+import { query } from '../db/connection.js';
 
-export function createUser({ fullName, dateOfBirth, email, mobile, passwordHash }) {
-  const db = getDb();
+export async function createUser({ fullName, dateOfBirth, email, mobile, passwordHash }) {
   const id = crypto.randomUUID();
-  db.prepare(
+  await query(
     `INSERT INTO users (id, full_name, date_of_birth, email, mobile, password_hash)
-     VALUES (@id, @fullName, @dateOfBirth, @email, @mobile, @passwordHash)`,
-  ).run({ id, fullName, dateOfBirth, email, mobile, passwordHash });
+     VALUES ($1, $2, $3, $4, $5, $6)`,
+    [id, fullName, dateOfBirth, email, mobile, passwordHash],
+  );
   return findUserById(id);
 }
 
-export function findUserByEmail(email) {
-  return getDb().prepare('SELECT * FROM users WHERE email = ? COLLATE NOCASE').get(email);
+export async function findUserByEmail(email) {
+  const { rows } = await query('SELECT * FROM users WHERE email = $1', [email]);
+  return rows[0] || null;
 }
 
-export function findUserById(id) {
-  return getDb().prepare('SELECT * FROM users WHERE id = ?').get(id);
+export async function findUserById(id) {
+  const { rows } = await query('SELECT * FROM users WHERE id = $1', [id]);
+  return rows[0] || null;
 }
 
-export function markEmailVerified(userId) {
-  getDb()
-    .prepare(`UPDATE users SET email_verified_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`)
-    .run(userId);
+export async function markEmailVerified(userId) {
+  await query(
+    `UPDATE users SET email_verified_at = now(), updated_at = now() WHERE id = $1`,
+    [userId],
+  );
 }
 
-export function setPendingEmail(userId, pendingEmail) {
-  getDb()
-    .prepare(`UPDATE users SET pending_email = ?, updated_at = datetime('now') WHERE id = ?`)
-    .run(pendingEmail, userId);
+export async function setPendingEmail(userId, pendingEmail) {
+  await query(
+    `UPDATE users SET pending_email = $1, updated_at = now() WHERE id = $2`,
+    [pendingEmail, userId],
+  );
 }
 
-export function applyPendingEmail(userId, newEmail) {
-  getDb()
-    .prepare(
-      `UPDATE users SET email = ?, pending_email = NULL, email_verified_at = datetime('now'), updated_at = datetime('now')
-       WHERE id = ?`,
-    )
-    .run(newEmail, userId);
+export async function applyPendingEmail(userId, newEmail) {
+  await query(
+    `UPDATE users SET email = $1, pending_email = NULL, email_verified_at = now(), updated_at = now()
+     WHERE id = $2`,
+    [newEmail, userId],
+  );
 }
 
-export function updatePasswordHash(userId, passwordHash) {
-  getDb()
-    .prepare(`UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?`)
-    .run(passwordHash, userId);
+export async function updatePasswordHash(userId, passwordHash) {
+  await query(`UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2`, [passwordHash, userId]);
 }
 
-export function updateProfile(userId, { fullName, dateOfBirth, mobile }) {
-  getDb()
-    .prepare(
-      `UPDATE users SET full_name = ?, date_of_birth = ?, mobile = ?, updated_at = datetime('now') WHERE id = ?`,
-    )
-    .run(fullName, dateOfBirth, mobile, userId);
+export async function updateProfile(userId, { fullName, dateOfBirth, mobile }) {
+  await query(
+    `UPDATE users SET full_name = $1, date_of_birth = $2, mobile = $3, updated_at = now() WHERE id = $4`,
+    [fullName, dateOfBirth, mobile, userId],
+  );
 }
 
-export function anonymizeUserComments(userId) {
-  getDb()
-    .prepare(`UPDATE comments SET user_id = NULL, author_name_snapshot = 'Deleted User' WHERE user_id = ?`)
-    .run(userId);
+export async function anonymizeUserComments(userId) {
+  await query(
+    `UPDATE comments SET user_id = NULL, author_name_snapshot = 'Deleted User' WHERE user_id = $1`,
+    [userId],
+  );
 }
 
-export function deleteUser(userId) {
-  getDb().prepare('DELETE FROM users WHERE id = ?').run(userId);
+export async function deleteUser(userId) {
+  await query('DELETE FROM users WHERE id = $1', [userId]);
 }
 
 export function toSafeUser(user) {
@@ -74,6 +74,6 @@ export function toSafeUser(user) {
     mobileNumber: user.mobile,
     dateOfBirth: user.date_of_birth,
     emailVerified: Boolean(user.email_verified_at),
-    createdAt: toIsoUtc(user.created_at),
+    createdAt: user.created_at instanceof Date ? user.created_at.toISOString() : user.created_at,
   };
 }

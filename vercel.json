@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" }
+  ],
+  "crons": [
+    { "path": "/api/cron/newsletter/daily", "schedule": "0 7 * * *" },
+    { "path": "/api/cron/newsletter/weekly", "schedule": "0 7 * * 1" }
+  ],
+  "functions": {
+    "api/index.js": { "maxDuration": 60 }
+  }
+}

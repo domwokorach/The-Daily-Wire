@@ -9,6 +9,6 @@ export default asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = checkSaved(req.user.id, parsed.articleId);
+  const { status, body } = await checkSaved(req.user.id, parsed.articleId);
   res.status(status).json(body);
 });

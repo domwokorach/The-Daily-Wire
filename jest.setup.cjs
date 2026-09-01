@@ -1,4 +1,5 @@
 require("@testing-library/jest-dom");
+require("dotenv/config");
 
 // jsdom's test environment doesn't provide these globals; the `resend` SDK
 // (pulled in transitively by server-side auth tests) needs them at import time.

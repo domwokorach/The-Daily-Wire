@@ -9,6 +9,6 @@ export default asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = resendConfirmation(parsed.params.email);
+  const { status, body } = await resendConfirmation(parsed.params.email);
   res.status(status).json(body);
 });

@@ -1,58 +1,63 @@
-import { getDb } from './connection.js';
+import { getPool } from './connection.js';
 
 const STATEMENTS = [
+  `CREATE EXTENSION IF NOT EXISTS citext`,
+
   `CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     full_name TEXT NOT NULL,
     date_of_birth TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    email CITEXT NOT NULL UNIQUE,
     mobile TEXT NOT NULL,
     password_hash TEXT NOT NULL,
-    email_verified_at TEXT,
+    email_verified_at TIMESTAMPTZ,
     pending_email TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
 
   `CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    expires_at TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL,
     user_agent TEXT,
-    last_seen_at TEXT NOT NULL DEFAULT (datetime('now'))
+    last_seen_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
   `CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)`,
 
   `CREATE TABLE IF NOT EXISTS password_reset_tokens (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    expires_at TEXT NOT NULL,
-    used_at TEXT
+    expires_at TIMESTAMPTZ NOT NULL,
+    used_at TIMESTAMPTZ
   )`,
 
   `CREATE TABLE IF NOT EXISTS email_verification_tokens (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     target_email TEXT NOT NULL,
-    expires_at TEXT NOT NULL,
-    used_at TEXT
+    expires_at TIMESTAMPTZ NOT NULL,
+    used_at TIMESTAMPTZ
   )`,
 
   `CREATE TABLE IF NOT EXISTS comments (
     id TEXT PRIMARY KEY,
+    seq BIGSERIAL,
     article_id TEXT NOT NULL,
     user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
     author_name_snapshot TEXT NOT NULL,
     body TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    edited_at TEXT,
-    is_deleted INTEGER NOT NULL DEFAULT 0
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    edited_at TIMESTAMPTZ,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    status TEXT NOT NULL DEFAULT 'visible'
   )`,
   `CREATE INDEX IF NOT EXISTS idx_comments_article_id ON comments(article_id, created_at)`,
 
   `CREATE TABLE IF NOT EXISTS saved_articles (
     id TEXT PRIMARY KEY,
+    seq BIGSERIAL,
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     article_id TEXT NOT NULL,
     title TEXT NOT NULL,
@@ -61,7 +66,7 @@ const STATEMENTS = [
     source_name TEXT,
     category TEXT,
     published_at TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE(user_id, article_id)
   )`,
   `CREATE INDEX IF NOT EXISTS idx_saved_articles_user_id ON saved_articles(user_id, created_at)`,
@@ -69,31 +74,31 @@ const STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS notification_preferences (
     user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     categories_csv TEXT NOT NULL DEFAULT '',
-    push_enabled INTEGER NOT NULL DEFAULT 0,
+    push_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     push_subscription_json TEXT,
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
 
   `CREATE TABLE IF NOT EXISTS subscriptions (
     id TEXT PRIMARY KEY,
     user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
-    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    email CITEXT NOT NULL UNIQUE,
     status TEXT NOT NULL DEFAULT 'pending',
-    daily_digest INTEGER NOT NULL DEFAULT 0,
-    weekly_digest INTEGER NOT NULL DEFAULT 0,
-    breaking_news INTEGER NOT NULL DEFAULT 0,
-    politics INTEGER NOT NULL DEFAULT 0,
-    world INTEGER NOT NULL DEFAULT 0,
-    business INTEGER NOT NULL DEFAULT 0,
-    health INTEGER NOT NULL DEFAULT 0,
-    tech INTEGER NOT NULL DEFAULT 0,
-    sport INTEGER NOT NULL DEFAULT 0,
-    email_verified_at TEXT,
-    last_confirmation_sent_at TEXT,
-    subscribed_at TEXT,
-    unsubscribed_at TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    daily_digest BOOLEAN NOT NULL DEFAULT FALSE,
+    weekly_digest BOOLEAN NOT NULL DEFAULT FALSE,
+    breaking_news BOOLEAN NOT NULL DEFAULT FALSE,
+    politics BOOLEAN NOT NULL DEFAULT FALSE,
+    world BOOLEAN NOT NULL DEFAULT FALSE,
+    business BOOLEAN NOT NULL DEFAULT FALSE,
+    health BOOLEAN NOT NULL DEFAULT FALSE,
+    tech BOOLEAN NOT NULL DEFAULT FALSE,
+    sport BOOLEAN NOT NULL DEFAULT FALSE,
+    email_verified_at TIMESTAMPTZ,
+    last_confirmation_sent_at TIMESTAMPTZ,
+    subscribed_at TIMESTAMPTZ,
+    unsubscribed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
   `CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id)`,
   `CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status)`,
@@ -101,17 +106,17 @@ const STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS subscription_confirmation_tokens (
     id TEXT PRIMARY KEY,
     subscription_id TEXT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
-    expires_at TEXT NOT NULL,
-    used_at TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    expires_at TIMESTAMPTZ NOT NULL,
+    used_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
   `CREATE INDEX IF NOT EXISTS idx_subscription_confirmation_tokens_subscription_id ON subscription_confirmation_tokens(subscription_id)`,
 
   `CREATE TABLE IF NOT EXISTS subscription_management_tokens (
     id TEXT PRIMARY KEY,
     subscription_id TEXT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
-    revoked_at TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    revoked_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
   `CREATE INDEX IF NOT EXISTS idx_subscription_management_tokens_subscription_id ON subscription_management_tokens(subscription_id)`,
 
@@ -123,29 +128,21 @@ const STATEMENTS = [
     idempotency_key TEXT NOT NULL UNIQUE,
     provider_email_id TEXT,
     status TEXT NOT NULL DEFAULT 'sent',
-    sent_at TEXT NOT NULL DEFAULT (datetime('now'))
+    sent_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
   `CREATE INDEX IF NOT EXISTS idx_subscription_email_log_subscription_id ON subscription_email_log(subscription_id)`,
 ];
 
-/** SQLite has no `ADD COLUMN IF NOT EXISTS`, and this app's migrations are
- * plain `CREATE TABLE IF NOT EXISTS` (no version tracking) — so a column
- * added to an already-shipped table needs an explicit existence check
- * before `ALTER TABLE`, run once per table outside the `CREATE TABLE`
- * statements above. */
-function ensureColumn(db, table, column, definition) {
-  const existing = db.prepare(`PRAGMA table_info(${table})`).all();
-  if (existing.some((col) => col.name === column)) return;
-  db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
-}
-
-export function migrate() {
-  const db = getDb();
-  const run = db.transaction(() => {
-    for (const statement of STATEMENTS) db.exec(statement);
-    // Moderation-ready comment status, added after `comments` already
-    // shipped — existing rows default to 'visible' automatically.
-    ensureColumn(db, 'comments', 'status', "TEXT NOT NULL DEFAULT 'visible'");
-  });
-  run();
+export async function migrate() {
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    for (const statement of STATEMENTS) await client.query(statement);
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
 }

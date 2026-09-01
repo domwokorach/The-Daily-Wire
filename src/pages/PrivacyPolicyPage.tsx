@@ -136,7 +136,7 @@ const SECTIONS: LegalSection[] = [
       },
       {
         kind: 'p',
-        text: 'We do not share your personal information with NewsData.io, OpenWeather, or API-Football / API-Sports — those providers supply content and data to us; your account information is not sent to them.',
+        text: 'We do not share your personal information with NewsAPI.org, OpenWeather, or API-Football / API-Sports — those providers supply content and data to us; your account information is not sent to them.',
       },
     ],
   },

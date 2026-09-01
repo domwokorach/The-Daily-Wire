@@ -28,56 +28,56 @@ function genericAuthFailure() {
 }
 
 export async function register({ fullName, dateOfBirth, email, mobileNumber, password }, userAgent) {
-  if (findUserByEmail(email)) {
+  if (await findUserByEmail(email)) {
     return { status: 409, body: { error: true, code: 'EMAIL_TAKEN', message: 'An account with that email already exists.' } };
   }
 
   const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-  const user = createUser({ fullName, dateOfBirth, email, mobile: mobileNumber, passwordHash });
+  const user = await createUser({ fullName, dateOfBirth, email, mobile: mobileNumber, passwordHash });
 
-  const token = createEmailVerificationToken(user.id, email);
+  const token = await createEmailVerificationToken(user.id, email);
   sendVerificationEmail(email, token).catch((err) => console.error('[authService] verification email failed', err));
 
-  const session = createSession(user.id, userAgent);
+  const session = await createSession(user.id, userAgent);
   return { status: 201, body: { user: toSafeUser(user) }, session };
 }
 
 export async function login({ email, password }, userAgent) {
-  const user = findUserByEmail(email);
+  const user = await findUserByEmail(email);
   if (!user) return genericAuthFailure();
 
   const matches = await bcrypt.compare(password, user.password_hash);
   if (!matches) return genericAuthFailure();
 
-  const session = createSession(user.id, userAgent);
+  const session = await createSession(user.id, userAgent);
   return { status: 200, body: { user: toSafeUser(user) }, session };
 }
 
-export function getMe(userId) {
-  const user = findUserById(userId);
+export async function getMe(userId) {
+  const user = await findUserById(userId);
   if (!user) return { status: 404, body: { error: true, code: 'NOT_FOUND', message: 'Account not found.' } };
   return { status: 200, body: { user: toSafeUser(user) } };
 }
 
 export async function verifyEmail(token) {
-  const row = consumeEmailVerificationToken(token);
+  const row = await consumeEmailVerificationToken(token);
   if (!row) {
     return { status: 400, body: { error: true, code: 'INVALID_TOKEN', message: 'This verification link is invalid or has expired.' } };
   }
 
-  const user = findUserById(row.user_id);
+  const user = await findUserById(row.user_id);
   if (user?.pending_email && user.pending_email === row.target_email) {
-    applyPendingEmail(user.id, row.target_email);
+    await applyPendingEmail(user.id, row.target_email);
   } else {
-    markEmailVerified(row.user_id);
+    await markEmailVerified(row.user_id);
   }
   return { status: 200, body: { verified: true } };
 }
 
 export async function requestPasswordReset(email) {
-  const user = findUserByEmail(email);
+  const user = await findUserByEmail(email);
   if (user) {
-    const token = createPasswordResetToken(user.id);
+    const token = await createPasswordResetToken(user.id);
     sendPasswordResetEmail(email, token).catch((err) => console.error('[authService] reset email failed', err));
   }
   return {
@@ -87,47 +87,47 @@ export async function requestPasswordReset(email) {
 }
 
 export async function resetPassword(token, password) {
-  const row = consumePasswordResetToken(token);
+  const row = await consumePasswordResetToken(token);
   if (!row) {
     return { status: 400, body: { error: true, code: 'INVALID_TOKEN', message: 'This reset link is invalid or has expired.' } };
   }
   const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-  updatePasswordHash(row.user_id, passwordHash);
-  deleteAllSessionsForUser(row.user_id);
+  await updatePasswordHash(row.user_id, passwordHash);
+  await deleteAllSessionsForUser(row.user_id);
   return { status: 200, body: { message: 'Password reset successfully.' } };
 }
 
 export async function changePassword(userId, { currentPassword, newPassword }) {
-  const user = findUserById(userId);
+  const user = await findUserById(userId);
   const matches = await bcrypt.compare(currentPassword, user.password_hash);
   if (!matches) {
     return { status: 401, body: { error: true, code: 'INVALID_PASSWORD', message: 'Your current password is incorrect.' } };
   }
   const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
-  updatePasswordHash(userId, passwordHash);
-  deleteAllSessionsForUser(userId);
-  const session = createSession(userId);
+  await updatePasswordHash(userId, passwordHash);
+  await deleteAllSessionsForUser(userId);
+  const session = await createSession(userId);
   return { status: 200, body: { message: 'Password changed successfully.' }, session };
 }
 
 export async function requestEmailChange(userId, { newEmail, currentPassword }) {
-  const user = findUserById(userId);
+  const user = await findUserById(userId);
   const matches = await bcrypt.compare(currentPassword, user.password_hash);
   if (!matches) {
     return { status: 401, body: { error: true, code: 'INVALID_PASSWORD', message: 'Your password is incorrect.' } };
   }
-  if (findUserByEmail(newEmail)) {
+  if (await findUserByEmail(newEmail)) {
     return { status: 409, body: { error: true, code: 'EMAIL_TAKEN', message: 'An account with that email already exists.' } };
   }
 
-  setPendingEmail(userId, newEmail);
-  const token = createEmailVerificationToken(userId, newEmail);
+  await setPendingEmail(userId, newEmail);
+  const token = await createEmailVerificationToken(userId, newEmail);
   sendEmailChangeVerification(newEmail, token).catch((err) => console.error('[authService] change-email email failed', err));
   return { status: 200, body: { message: 'Verification email sent to your new address.' } };
 }
 
 export async function deleteAccount(userId, currentPassword) {
-  const user = findUserById(userId);
+  const user = await findUserById(userId);
   const matches = await bcrypt.compare(currentPassword, user.password_hash);
   if (!matches) {
     return { status: 401, body: { error: true, code: 'INVALID_PASSWORD', message: 'Your password is incorrect.' } };
@@ -135,9 +135,9 @@ export async function deleteAccount(userId, currentPassword) {
   // Comments: keep the content, anonymize the author ("Deleted User").
   // Saved articles: private to the account, so they're deleted outright
   // rather than orphaned — this must stay in sync with the Terms of Service.
-  anonymizeUserComments(userId);
-  deleteAllSavedArticlesForUser(userId);
-  deleteAllSessionsForUser(userId);
-  deleteUser(userId);
+  await anonymizeUserComments(userId);
+  await deleteAllSavedArticlesForUser(userId);
+  await deleteAllSessionsForUser(userId);
+  await deleteUser(userId);
   return { status: 200, body: { message: 'Account deleted.' } };
 }

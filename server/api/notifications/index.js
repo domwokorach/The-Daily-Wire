@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth, optionalAuth } from '../../middleware/requireAuth.js';
 import { getEnv } from '../../config/env.js';
 import { publishBreakingAlert } from '../../services/notificationService.js';
+import { asyncHandler } from '../../middleware/errorHandler.js';
 import getPreferencesRoute from './getPreferences.js';
 import updatePreferencesRoute from './updatePreferences.js';
 import subscribePushRoute from './subscribePush.js';
@@ -20,9 +21,9 @@ router.get('/breaking/stream', optionalAuth, breakingStreamRoute);
 // connection, so the popup/dedupe/push flow can be exercised without
 // waiting on a real breaking story. Never reachable in production.
 if (!getEnv().isProduction) {
-  router.post('/breaking/test', (req, res) => {
+  router.post('/breaking/test', asyncHandler(async (req, res) => {
     const id = `test-${Date.now()}`;
-    publishBreakingAlert({
+    await publishBreakingAlert({
       id,
       headline: req.body?.headline || 'Breaking: this is a test alert',
       summary: req.body?.summary || 'Triggered from the /api/notifications/breaking/test dev route.',
@@ -32,7 +33,7 @@ if (!getEnv().isProduction) {
       breaking: true,
     });
     res.status(202).json({ published: true, id });
-  });
+  }));
 }
 
 export default router;

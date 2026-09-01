@@ -3,7 +3,7 @@ import { parsePreferencesUpdateBody } from '../../validators/subscriptionValidat
 import { getPreferencesForUser, updatePreferencesForUser } from '../../services/subscriptionService.js';
 
 export const getPreferencesRoute = asyncHandler(async (req, res) => {
-  const { status, body } = getPreferencesForUser(req.user.id);
+  const { status, body } = await getPreferencesForUser(req.user.id);
   res.status(status).json(body);
 });
 
@@ -14,6 +14,6 @@ export const updatePreferencesRoute = asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = updatePreferencesForUser(req.user.id, req.user.email, parsed.params.preferences);
+  const { status, body } = await updatePreferencesForUser(req.user.id, req.user.email, parsed.params.preferences);
   res.status(status).json(body);
 });

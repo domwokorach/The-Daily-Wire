@@ -6,8 +6,9 @@ import { FALLBACK_IMAGE } from '@/constants/fallbackImage';
 /**
  * The server's already-normalized article shape (see
  * `server/services/newsService.js`'s pipeline) — never a raw provider
- * response. `section` is NewsData.io's own category tagging, passed
- * through directly (trusted as-is, no client-side classification).
+ * response. `section` reflects whichever category/section was actually
+ * requested from NewsAPI.org (which has no per-article category of its
+ * own), not client-side classification.
  */
 export interface ServerArticle {
   id: string;

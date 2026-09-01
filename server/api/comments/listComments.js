@@ -10,6 +10,6 @@ export default asyncHandler(async (req, res) => {
   }
 
   const parsedQuery = parseListCommentsQuery(req.query || {});
-  const { status, body } = listComments(parsedArticle.articleId, parsedQuery.params);
+  const { status, body } = await listComments(parsedArticle.articleId, parsedQuery.params);
   res.status(status).json(body);
 });

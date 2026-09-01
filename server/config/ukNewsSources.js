@@ -4,19 +4,16 @@ export const UK_COUNTRY_CODE = 'gb';
 export const UK_LANGUAGE = 'en';
 
 /**
- * NewsData.io's `country=gb` alone is unreliable for UK relevance — verified
- * live: a business-scoped request came back with an Oklahoma wildfire story
- * and a Nigeria Hajj-allocation story, both tagged `country: ["united
- * kingdom"]`. NewsData.io's country tag reflects the *publisher's*
- * registered country, not the article's subject — the same lesson the News
- * API integration already learned (see git history), just on a different
- * provider. An approved UK publisher `domain=` allowlist (NewsData's own
- * short-slug format, confirmed live: `domain=bbc` works, `bbc.co.uk`
- * doesn't) is the actual UK-relevance enforcement; `country=gb` stays on as
- * a cheap secondary signal.
- *
- * Capped at 5 — NewsData.io rejects more than 5 values in `domain` with a
- * 422 `UnsupportedQueryLength` (confirmed live), unlike News API's `domains`
- * allowlist which had no such limit.
+ * Approved UK publisher domains — editorial policy layered on top of
+ * NewsAPI's own `country=gb` filtering, which alone can surface stories
+ * about the UK from non-UK publishers rather than UK-published content.
+ * NewsAPI's `domains` param (full hostnames, no short-slug format) accepts
+ * an arbitrary number of comma-separated values.
  */
-export const UK_NEWS_DOMAINS = ['bbc', 'theguardian', 'skynews', 'telegraph', 'independent'];
+export const UK_NEWS_DOMAINS = [
+  'bbc.co.uk',
+  'theguardian.com',
+  'news.sky.com',
+  'telegraph.co.uk',
+  'independent.co.uk',
+];

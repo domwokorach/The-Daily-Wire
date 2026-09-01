@@ -220,12 +220,12 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
-    id: 'newsdata',
-    title: '15. NewsData.io',
+    id: 'newsapi',
+    title: '15. NewsAPI.org',
     blocks: [
       {
         kind: 'p',
-        text: 'Some news data displayed on the Service, including headlines, article metadata, publisher information, images, article links, and publication dates, is obtained through NewsData.io, a third-party news data provider.',
+        text: 'Some news data displayed on the Service, including headlines, article metadata, publisher information, images, article links, and publication dates, is obtained through NewsAPI.org, a third-party news data provider.',
       },
       {
         kind: 'p',
@@ -445,7 +445,7 @@ const SECTIONS: LegalSection[] = [
     blocks: [
       {
         kind: 'p',
-        text: 'The Service relies on external providers, including NewsData.io, OpenWeather, API-Football / API-Sports, and Resend. The quotas, pricing, availability, coverage, terms, and APIs of these providers may change at any time.',
+        text: 'The Service relies on external providers, including NewsAPI.org, OpenWeather, API-Football / API-Sports, and Resend. The quotas, pricing, availability, coverage, terms, and APIs of these providers may change at any time.',
       },
       { kind: 'p', text: 'We cannot guarantee the permanent availability of any third-party integration used by the Service.' },
     ],

@@ -15,7 +15,7 @@ export default asyncHandler(async (req, res) => {
     return;
   }
 
-  const { status, body } = createComment(
+  const { status, body } = await createComment(
     parsedArticle.articleId,
     req.user,
     parsedBody.params.body,

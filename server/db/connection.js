@@ -1,18 +1,16 @@
-import path from 'node:path';
-import fs from 'node:fs';
-import Database from 'better-sqlite3';
+import pg from 'pg';
 import { getEnv } from '../config/env.js';
 
-let db;
+const { Pool } = pg;
 
-export function getDb() {
-  if (db) return db;
+let pool;
 
-  const dbPath = getEnv().dbPath;
-  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+export function getPool() {
+  if (pool) return pool;
+  pool = new Pool({ connectionString: getEnv().databaseUrl, max: 5 });
+  return pool;
+}
 
-  db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
-  return db;
+export async function query(text, params = []) {
+  return getPool().query(text, params);
 }

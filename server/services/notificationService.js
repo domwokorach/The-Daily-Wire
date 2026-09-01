@@ -37,7 +37,7 @@ export function getRecentAlerts() {
   return [...RECENT_ALERT_IDS.map((entry) => entry.alert)];
 }
 
-export function publishBreakingAlert(alert) {
+export async function publishBreakingAlert(alert) {
   RECENT_ALERT_IDS.push({ id: alert.id, alert });
   if (RECENT_ALERT_IDS.length > RECENT_ALERT_LIMIT) RECENT_ALERT_IDS.shift();
 
@@ -48,7 +48,7 @@ export function publishBreakingAlert(alert) {
   );
 
   if (!ensureVapid()) return;
-  const subscribers = listPushSubscribers();
+  const subscribers = await listPushSubscribers();
   for (const subscriber of subscribers) {
     if (subscriber.categories.length && !subscriber.categories.includes(alert.category)) continue;
     webpush
@@ -57,8 +57,8 @@ export function publishBreakingAlert(alert) {
   }
 }
 
-export function getPreferences(userId) {
-  const prefs = getPreferencesRow(userId);
+export async function getPreferences(userId) {
+  const prefs = await getPreferencesRow(userId);
   return {
     status: 200,
     body: {
@@ -68,20 +68,20 @@ export function getPreferences(userId) {
   };
 }
 
-export function updatePreferences(userId, { categories, pushEnabled }) {
-  const prefs = upsertPreferences(userId, { categories, pushEnabled });
+export async function updatePreferences(userId, { categories, pushEnabled }) {
+  const prefs = await upsertPreferences(userId, { categories, pushEnabled });
   return {
     status: 200,
     body: { categories: prefs.categoriesCsv ? prefs.categoriesCsv.split(',') : [], pushEnabled: prefs.pushEnabled },
   };
 }
 
-export function subscribePush(userId, subscription) {
-  setPushSubscription(userId, subscription);
+export async function subscribePush(userId, subscription) {
+  await setPushSubscription(userId, subscription);
   return { status: 200, body: { subscribed: true } };
 }
 
-export function unsubscribePush(userId) {
-  clearPushSubscription(userId);
+export async function unsubscribePush(userId) {
+  await clearPushSubscription(userId);
   return { status: 200, body: { subscribed: false } };
 }

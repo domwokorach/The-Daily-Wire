@@ -1,5 +1,11 @@
 export const CACHE_TTL = {
-  NEWS: 10 * 60 * 1000,
+  // NewsAPI.org's Developer plan has a limited daily request quota — these
+  // lean long on purpose, same rationale as the SPORTS_* values below.
+  NEWS_HEADLINES: 15 * 60 * 1000,
+  NEWS_SECTION: 15 * 60 * 1000,
+  NEWS_SEARCH: 10 * 60 * 1000,
+  NEWS_SOURCES: 6 * 60 * 60 * 1000,
+
   WEATHER_CURRENT: 10 * 60 * 1000,
   WEATHER_FORECAST: 15 * 60 * 1000,
   WEATHER_LOCATION: 6 * 60 * 60 * 1000,

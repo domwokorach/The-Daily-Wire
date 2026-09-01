@@ -15,7 +15,7 @@ Server services
   ↓
 Provider adapters
   ↓
-NewsData.io · OpenWeather · API-Football
+NewsAPI.org · OpenWeather · API-Football
 ```
 
 Third-party API keys live only in server environment variables and are never sent to the browser.
@@ -32,10 +32,10 @@ Third-party API keys live only in server environment variables and are never sen
 
 ### News
 
-- UK-focused article feeds sourced from NewsData.io
+- UK-focused article feeds sourced from NewsAPI.org
 - Home, Politics, World, Business, Health, and Tech sections
 - Article normalisation and deduplication ([server/services/newsDeduplication.js](server/services/newsDeduplication.js), [src/features/news/utils/normalizeArticle.ts](src/features/news/utils/normalizeArticle.ts))
-- UK publisher domain allowlist (BBC, The Guardian, Sky News, The Telegraph, The Independent) as the primary relevance signal, with `country=gb` as a secondary one — see [server/config/ukNewsSources.js](server/config/ukNewsSources.js)
+- `country=gb` on the four `top-headlines`-backed sections (Business/Health/Tech/Sport), plus a UK publisher domain allowlist (BBC, The Guardian, Sky News, The Telegraph, The Independent) layered onto the Politics/World editorial queries — see [server/config/ukNewsSources.js](server/config/ukNewsSources.js)
 - Responsive story cards and lead-story hierarchy on the homepage
 
 ### Weather
@@ -54,7 +54,7 @@ Third-party API keys live only in server environment variables and are never sen
 
 ### Search
 
-- Global news search backed by the NewsData.io `/everything` endpoint
+- Global news search backed by NewsAPI.org's `/v2/everything` endpoint (query/section filters)
 - URL-based query state (`/search?q=...`)
 - Debounced input via [src/features/news/hooks/useNewsSearch.ts](src/features/news/hooks/useNewsSearch.ts)
 - Empty and error states
@@ -75,7 +75,7 @@ Third-party API keys live only in server environment variables and are never sen
 | React Router 7 | Client-side routing |
 | Zustand | Local/UI state |
 | Express 5 | Internal API server |
-| NewsData.io | News articles and source discovery |
+| NewsAPI.org | News articles and source discovery |
 | OpenWeather | Current weather, forecast, and geocoding |
 | API-Football (API-Sports) | Premier League data |
 | Vite | Development server and build tooling |
@@ -102,7 +102,7 @@ Domain services (server/services/*)
 Server cache (server/cache)
   ↓
 Provider adapters (server/providers/*)
-  ├── newsdata
+  ├── newsapi
   ├── openweather
   └── apiFootball
 ```
@@ -138,7 +138,7 @@ news-storys/
 │
 ├── server/
 │   ├── api/                    # Express routes: news, weather, sports
-│   ├── providers/               # newsdata, openweather, apiFootball adapters
+│   ├── providers/               # newsapi, openweather, apiFootball adapters
 │   ├── services/                  # newsService, weatherService, sportsService, dedup
 │   ├── config/                     # env.js, sports.js, weather.js, ukNewsSources.js
 │   ├── cache/                       # cacheClient, cacheKeys, ttl
@@ -186,7 +186,7 @@ Live accent:            #3E7A63
 
 - Node.js (see `engines` in a future `package.json` update, or use a current LTS release)
 - npm
-- API credentials for NewsData.io, OpenWeather, and API-Football (see [Environment Variables](#environment-variables))
+- API credentials for NewsAPI.org, OpenWeather, and API-Football (see [Environment Variables](#environment-variables))
 
 ### Installation
 
@@ -204,8 +204,9 @@ Then fill in the values in `.env` with your own provider credentials.
 Defined in [server/config/env.js](server/config/env.js) and documented in [.env.example](.env.example):
 
 ```env
-# NewsData.io
-NEWSDATA_API_KEY=your_newsdata_api_key_here
+# NewsAPI.org — development/testing/localhost only on the free Developer
+# plan; production requires a plan/licence that permits production use.
+NEWS_API_KEY=your_newsapi_api_key_here
 
 # OpenWeather
 WEATHER_API_KEY=your_openweather_api_key_here
@@ -221,7 +222,7 @@ PORT=8787
 
 | Variable | Purpose |
 | --- | --- |
-| `NEWSDATA_API_KEY` | NewsData.io credential used for UK news feeds and search. |
+| `NEWS_API_KEY` | NewsAPI.org credential used for UK news feeds, sections, search, and source discovery. |
 | `WEATHER_API_KEY` | OpenWeather credential used for current weather, geocoding, and forecasts. |
 | `SPORTS_API_KEY` | API-Football credential. |
 | `SPORTS_API_BASE_URL` | API-Football base endpoint. |
@@ -259,7 +260,7 @@ The dev server proxies frontend requests to `/api` (see [src/config/appConfig.ts
 
 ## News Integration
 
-Provider: **NewsData.io**.
+Provider: **NewsAPI.org**.
 
 ```text
 News UI (components/news, pages)
@@ -272,25 +273,30 @@ Frontend newsService (src/features/news/services/newsService.ts)
   ↓
 Server newsService (server/services/newsService.js)
   ↓
-NewsData provider (server/providers/newsdata)
+NewsAPI provider (server/providers/newsapi)
+  ↓
+NewsAPI.org
 ```
 
 Internal endpoints:
 
 ```text
-GET /api/news              # UK top headlines (headlines.js)
-GET /api/news/everything   # Full-text search / general query (everything.js)
+GET /api/news              # UK top headlines (headlines.js) — NewsAPI /v2/top-headlines
+GET /api/news/everything   # Full-text search / section query (everything.js) — NewsAPI /v2/everything
+GET /api/news/sources      # Source discovery (sources.js) — NewsAPI /v2/top-headlines/sources
 ```
+
+`business`/`health`/`tech`/`sport` map to NewsAPI's own `top-headlines` category; NewsAPI has no native `politics`/`world` category, so those two are served via `/v2/everything` with an editorial UK-focused query instead.
 
 Applied filtering and processing:
 
-- `country=gb` plus a UK publisher domain allowlist (BBC, The Guardian, Sky News, The Telegraph, The Independent)
+- `country=gb` (never `uk`) plus a UK publisher domain allowlist maintained in [server/config/ukNewsSources.js](server/config/ukNewsSources.js) (BBC, The Guardian, Sky News, The Telegraph, The Independent)
 - English-language filtering
-- Response normalisation ([server/providers/newsdata/normalizeArticle.js](server/providers/newsdata/normalizeArticle.js))
+- Response normalisation ([server/providers/newsapi/normalizeArticle.js](server/providers/newsapi/normalizeArticle.js))
 - Deduplication ([server/services/newsDeduplication.js](server/services/newsDeduplication.js))
-- Server-side caching (see [Caching](#caching))
+- Server-side caching, request deduplication, and stale-on-rate-limit fallback (see [Caching](#caching))
 
-The `NEWSDATA_API_KEY` is read only on the server and is never returned to the client.
+The `NEWS_API_KEY` is read only on the server via the `X-Api-Key` header, and is never sent in a URL, exposed to the browser, or returned to the client. NewsAPI.org's free Developer plan is intended for development/testing/localhost only — a production deployment needs a plan/licence that permits production use.
 
 ## UK News Categories
 
@@ -307,7 +313,7 @@ sport
 weather
 ```
 
-These are the React-facing category keys. Provider-specific query parameters (e.g. NewsData.io category or domain values) are mapped server-side so the frontend stays independent of provider terminology.
+These are the React-facing category keys. Provider-specific query parameters (e.g. NewsAPI.org category or domain values) are mapped server-side so the frontend stays independent of provider terminology.
 
 ## Weather Integration
 
@@ -403,7 +409,7 @@ useNewsSearch (src/features/news/hooks/useNewsSearch.ts)
   ↓
 Server newsService
   ↓
-NewsData.io
+NewsAPI.org
 ```
 
 - Query normalisation and server-side validation ([server/validators/newsValidator.js](server/validators/newsValidator.js))
@@ -506,7 +512,7 @@ This is not full end-to-end or component coverage across every feature — addit
 
 No deployment provider is preconfigured in this repository. General guidance:
 
-- Configure `NEWSDATA_API_KEY`, `WEATHER_API_KEY`, `SPORTS_API_KEY`, `SPORTS_API_BASE_URL`, `SPORTS_API_HOST`, and `PORT` in your hosting provider's environment settings — never in source.
+- Configure `NEWS_API_KEY`, `WEATHER_API_KEY`, `SPORTS_API_KEY`, `SPORTS_API_BASE_URL`, `SPORTS_API_HOST`, and `PORT` in your hosting provider's environment settings — never in source. NewsAPI.org's free Developer plan does not permit production use; a production deployment needs a plan/licence that does.
 - Run `npm run build` to produce the static frontend bundle; run the Express server (`npm run server` / `server/index.js`) as a separate process or function.
 - Ensure `NODE_ENV=production` is set so `/debug` and `/api/sports/leagues` routes are disabled.
 - Verify each `/api/*` route responds and that provider connectivity is healthy after deploy.
@@ -533,7 +539,7 @@ One provider request
 ## Troubleshooting
 
 **News does not load**
-Check `NEWSDATA_API_KEY`, provider quota, server logs, and the `/api/news` / `/api/news/everything` responses directly.
+Check `NEWS_API_KEY` (server restarted after `.env` changes, correct key, sent via the `X-Api-Key` header), provider quota, server logs, and the `/api/news`, `/api/news/everything`, and `/api/news/sources` responses directly.
 
 **Weather does not load**
 Check `WEATHER_API_KEY`, that the OpenWeather key is activated, the coordinates/location being requested, and provider quota.
@@ -585,7 +591,7 @@ Add the appropriate project licence here. No `LICENSE` file currently exists in 
 
 ## Third-Party Content
 
-- News articles remain the property of their original publishers (BBC, The Guardian, Sky News, The Telegraph, The Independent, and others returned by NewsData.io).
+- News articles remain the property of their original publishers (BBC, The Guardian, Sky News, The Telegraph, The Independent, and others returned by NewsAPI.org).
 - Article and editorial images are subject to the originating publisher's or provider's licence terms.
 - Team logos, league badges, and player images are subject to API-Football's and the relevant sporting organisations' usage terms.
 - Weather data is provided by OpenWeather.
