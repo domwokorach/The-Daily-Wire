@@ -9,6 +9,7 @@ import CompactStory from '@/components/news/CompactStory';
 import NewsGrid from '@/components/news/NewsGrid';
 import SportScoreCard from '@/components/sport/SportScoreCard';
 import HomepageWeather from '@/components/weather/HomepageWeather';
+import SubscribeCard from '@/components/subscription/SubscribeCard';
 import { useHomeFeed } from '@/features/news';
 import { useSportScores } from '@/features/sport';
 
@@ -50,6 +51,10 @@ function HomePage() {
       <Box sx={{ mt: { xs: 5, md: 7 } }}>
         <SectionHeader title="Latest" />
         <NewsGrid articles={latest} columns={{ xs: 12, sm: 6, md: 6, lg: 3 }} loading={loading} />
+      </Box>
+
+      <Box sx={{ mt: { xs: 5, md: 7 } }}>
+        <SubscribeCard />
       </Box>
 
       {sections.map((section) => (

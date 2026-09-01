@@ -1,9 +1,10 @@
 import { Container, Link, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import type { Article } from '@/data/mockArticles';
 import { timeAgo } from '@/utils/formatDate';
-import { buildArticlePath } from '@/config/routes';
+import { buildArticlePath, ROUTES } from '@/config/routes';
 import StatusChip from '@/components/common/StatusChip';
 
 interface BreakingNewsBarProps {
@@ -88,6 +89,26 @@ function BreakingNewsBar({ articles }: BreakingNewsBarProps) {
               </Stack>
             ))}
           </Stack>
+          <Link
+            component={RouterLink}
+            to={ROUTES.SUBSCRIBE}
+            underline="hover"
+            sx={{
+              flexShrink: 0,
+              ml: 'auto',
+              pl: 2,
+              display: { xs: 'none', sm: 'inline-flex' },
+              alignItems: 'center',
+              gap: 0.5,
+              color: 'text.secondary',
+              '&:hover': { color: 'primary.main' },
+            }}
+          >
+            <NotificationsNoneIcon sx={{ fontSize: '1rem' }} />
+            <Typography variant="caption" sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>
+              Get Breaking News Alerts
+            </Typography>
+          </Link>
         </Stack>
       </Container>
     </Stack>

@@ -17,3 +17,6 @@ export { default as ResetPasswordPage } from './ResetPasswordPage';
 export { default as VerifyEmailPage } from './VerifyEmailPage';
 export { default as ProfilePage } from './ProfilePage';
 export { default as SettingsPage } from './SettingsPage';
+export { default as SubscribePage } from './SubscribePage';
+export { default as SubscriptionConfirmedPage } from './SubscriptionConfirmedPage';
+export { default as UnsubscribePage } from './UnsubscribePage';

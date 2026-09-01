@@ -5,6 +5,7 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import { NAV_ITEMS } from '@/constants/navigation';
 import { APP_CONFIG } from '@/config/appConfig';
+import SubscribeForm from '@/components/subscription/SubscribeForm';
 
 const COMPANY_LINKS = ['About Us', 'Contact', 'Careers', 'Advertise'];
 const LEGAL_LINKS = ['Privacy Policy', 'Terms of Service', 'Accessibility'];
@@ -21,6 +22,28 @@ function Footer() {
       }}
     >
       <Container maxWidth="xl" sx={{ py: { xs: 4, md: 6 } }}>
+        <Box
+          sx={{
+            pb: { xs: 4, md: 5 },
+            mb: { xs: 4, md: 5 },
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Grid container spacing={3} sx={{ alignItems: 'center' }}>
+            <Grid size={{ xs: 12, md: 5 }}>
+              <Typography variant="overline" color="primary.main">
+                Newsletter
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Get the latest headlines delivered to your inbox.
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, md: 7 }}>
+              <SubscribeForm variant="compact" />
+            </Grid>
+          </Grid>
+        </Box>
         <Grid container spacing={4}>
           <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>

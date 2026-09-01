@@ -24,5 +24,8 @@ export function getEnv() {
     vapidPublicKey: process.env.VAPID_PUBLIC_KEY || '',
     vapidPrivateKey: process.env.VAPID_PRIVATE_KEY || '',
     vapidSubject: process.env.VAPID_SUBJECT || 'mailto:support@example.com',
+
+    resendWebhookSecret: process.env.RESEND_WEBHOOK_SECRET || '',
+    newsletterCronEnabled: process.env.NEWSLETTER_CRON_ENABLED === 'true',
   };
 }

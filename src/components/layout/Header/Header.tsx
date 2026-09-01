@@ -101,6 +101,7 @@ function Header() {
               variant="contained"
               color="primary"
               size="small"
+              onClick={() => navigate(ROUTES.SUBSCRIBE)}
               sx={{
                 display: { xs: 'none', md: 'inline-flex' },
                 ml: 1,

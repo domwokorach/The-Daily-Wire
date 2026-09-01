@@ -51,3 +51,10 @@ export const notificationKeys = {
   all: ['notifications'] as const,
   preferences: () => ['notifications', 'preferences'] as const,
 };
+
+/** Centralised TanStack Query key factory for newsletter subscriptions. */
+export const subscriptionKeys = {
+  all: ['subscription'] as const,
+  me: () => ['subscription', 'me'] as const,
+  managed: (token: string) => ['subscription', 'managed', token] as const,
+};

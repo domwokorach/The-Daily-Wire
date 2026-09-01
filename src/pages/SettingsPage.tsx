@@ -3,6 +3,7 @@ import Container from '@/components/common/Container';
 import ChangeEmailForm from '@/components/account/ChangeEmailForm';
 import ChangePasswordForm from '@/components/account/ChangePasswordForm';
 import NotificationPreferencesForm from '@/components/account/NotificationPreferencesForm';
+import EmailSubscriptionsForm from '@/components/account/EmailSubscriptionsForm';
 import DeleteAccountDialog from '@/components/account/DeleteAccountDialog';
 
 function SettingsPage() {
@@ -15,6 +16,7 @@ function SettingsPage() {
         <ChangeEmailForm />
         <ChangePasswordForm />
         <NotificationPreferencesForm />
+        <EmailSubscriptionsForm />
         <DeleteAccountDialog />
       </Stack>
     </Container>

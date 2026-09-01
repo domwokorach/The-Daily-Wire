@@ -8,6 +8,7 @@ import LoadingState from '@/components/common/LoadingState';
 import ErrorState from '@/components/common/ErrorState';
 import ResponsiveImage from '@/components/common/ResponsiveImage';
 import CommentList from '@/components/comments/CommentList';
+import SubscribeForm from '@/components/subscription/SubscribeForm';
 import type { Article } from '@/data/mockArticles';
 import { getArticleBySlug } from '@/features/news/services/newsService';
 import { formatFullDate, joinMeta } from '@/utils/formatDate';
@@ -118,6 +119,25 @@ function ArticlePage() {
           </Box>
         )}
       </Stack>
+      <Box
+        sx={{
+          mt: 5,
+          mb: 4,
+          p: { xs: 2.5, md: 3.5 },
+          bgcolor: 'surfaceAlt.main',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+          Enjoyed this story?
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Get the day&rsquo;s top stories delivered to your inbox.
+        </Typography>
+        <SubscribeForm variant="compact" />
+      </Box>
       <CommentList articleId={article.id} />
     </Container>
   );

@@ -29,6 +29,7 @@ if (!getEnv().isProduction) {
       category: req.body?.category || 'general',
       url: req.body?.url || `/article/${id}`,
       timestamp: new Date().toISOString(),
+      breaking: true,
     });
     res.status(202).json({ published: true, id });
   });

@@ -17,6 +17,10 @@ export const ROUTES = {
   VERIFY_EMAIL: '/verify-email',
   PROFILE: '/profile',
   SETTINGS: '/settings',
+  SUBSCRIBE: '/subscribe',
+  SUBSCRIPTION_CONFIRM: '/subscription/confirm',
+  SUBSCRIPTION_MANAGE: '/subscription/manage',
+  SUBSCRIPTION_UNSUBSCRIBE: '/subscription/unsubscribe',
   NOT_FOUND: '*',
 } as const;
 

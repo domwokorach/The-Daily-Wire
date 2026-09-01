@@ -15,3 +15,19 @@ export const commentLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: true, code: 'RATE_LIMITED', message: 'You are commenting too quickly. Slow down and try again.' },
 });
+
+export const subscribeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 8,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: true, code: 'RATE_LIMITED', message: 'Too many subscription attempts. Try again later.' },
+});
+
+export const resendConfirmationLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: true, code: 'RATE_LIMITED', message: 'Too many attempts. Try again later.' },
+});

@@ -58,6 +58,59 @@ const STATEMENTS = [
     push_subscription_json TEXT,
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`,
+
+  `CREATE TABLE IF NOT EXISTS subscriptions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    status TEXT NOT NULL DEFAULT 'pending',
+    daily_digest INTEGER NOT NULL DEFAULT 0,
+    weekly_digest INTEGER NOT NULL DEFAULT 0,
+    breaking_news INTEGER NOT NULL DEFAULT 0,
+    politics INTEGER NOT NULL DEFAULT 0,
+    world INTEGER NOT NULL DEFAULT 0,
+    business INTEGER NOT NULL DEFAULT 0,
+    health INTEGER NOT NULL DEFAULT 0,
+    tech INTEGER NOT NULL DEFAULT 0,
+    sport INTEGER NOT NULL DEFAULT 0,
+    email_verified_at TEXT,
+    last_confirmation_sent_at TEXT,
+    subscribed_at TEXT,
+    unsubscribed_at TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status)`,
+
+  `CREATE TABLE IF NOT EXISTS subscription_confirmation_tokens (
+    id TEXT PRIMARY KEY,
+    subscription_id TEXT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
+    expires_at TEXT NOT NULL,
+    used_at TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_subscription_confirmation_tokens_subscription_id ON subscription_confirmation_tokens(subscription_id)`,
+
+  `CREATE TABLE IF NOT EXISTS subscription_management_tokens (
+    id TEXT PRIMARY KEY,
+    subscription_id TEXT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
+    revoked_at TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_subscription_management_tokens_subscription_id ON subscription_management_tokens(subscription_id)`,
+
+  `CREATE TABLE IF NOT EXISTS subscription_email_log (
+    id TEXT PRIMARY KEY,
+    subscription_id TEXT NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
+    email_type TEXT NOT NULL,
+    article_id TEXT,
+    idempotency_key TEXT NOT NULL UNIQUE,
+    provider_email_id TEXT,
+    status TEXT NOT NULL DEFAULT 'sent',
+    sent_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_subscription_email_log_subscription_id ON subscription_email_log(subscription_id)`,
 ];
 
 export function migrate() {

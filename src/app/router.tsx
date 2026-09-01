@@ -20,6 +20,9 @@ import {
   VerifyEmailPage,
   ProfilePage,
   SettingsPage,
+  SubscribePage,
+  SubscriptionConfirmedPage,
+  UnsubscribePage,
   NotFoundPage,
 } from '@/pages';
 import { ROUTES } from '@/config/routes';
@@ -60,6 +63,10 @@ function AppRoutes() {
             </AuthGuard>
           }
         />
+        <Route path={ROUTES.SUBSCRIBE} element={<SubscribePage />} />
+        <Route path={ROUTES.SUBSCRIPTION_CONFIRM} element={<SubscriptionConfirmedPage />} />
+        <Route path={ROUTES.SUBSCRIPTION_MANAGE} element={<UnsubscribePage />} />
+        <Route path={ROUTES.SUBSCRIPTION_UNSUBSCRIBE} element={<UnsubscribePage />} />
         <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage />} />
       </Route>
     </Routes>

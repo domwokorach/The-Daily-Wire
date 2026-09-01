@@ -8,6 +8,7 @@ import {
   listPushSubscribers,
 } from '../repositories/notificationPrefRepository.js';
 import { getEnv } from '../config/env.js';
+import { sendBreakingNewsToSubscribers } from './newsletterService.js';
 
 // Single-process pub/sub for SSE — matches the existing in-memory cache's
 // same single-instance limitation (see server/cache/cacheClient.js).
@@ -41,6 +42,10 @@ export function publishBreakingAlert(alert) {
   if (RECENT_ALERT_IDS.length > RECENT_ALERT_LIMIT) RECENT_ALERT_IDS.shift();
 
   breakingNewsEmitter.emit('alert', alert);
+
+  sendBreakingNewsToSubscribers(alert).catch((err) =>
+    console.error('[notificationService] breaking news email dispatch failed', err),
+  );
 
   if (!ensureVapid()) return;
   const subscribers = listPushSubscribers();
