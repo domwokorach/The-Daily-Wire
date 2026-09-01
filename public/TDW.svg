@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <text
+    x="24"
+    y="24"
+    dy="0.35em"
+    text-anchor="middle"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-weight="700"
+    font-size="19"
+    textLength="38"
+    lengthAdjust="spacingAndGlyphs"
+    fill="#C9A86A"
+    stroke="#071426"
+    stroke-width="1"
+    paint-order="stroke fill"
+  >TDW</text>
+</svg>
