@@ -2,7 +2,7 @@ import { Box, Link, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import type { Article } from '@/data/mockArticles';
 import { timeAgo } from '@/utils/formatDate';
-import { buildArticlePath } from '@/constants/routes';
+import { buildArticlePath } from '@/config/routes';
 
 interface TextStoryProps {
   article: Article;

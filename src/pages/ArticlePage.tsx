@@ -8,9 +8,9 @@ import LoadingState from '@/components/common/LoadingState';
 import ErrorState from '@/components/common/ErrorState';
 import ImageWithSkeleton from '@/components/common/ImageWithSkeleton';
 import type { Article } from '@/data/mockArticles';
-import { getArticleBySlug } from '@/services/newsService';
+import { getArticleBySlug } from '@/features/news/services/newsService';
 import { formatFullDate, joinMeta } from '@/utils/formatDate';
-import { ROUTES } from '@/constants/routes';
+import { ROUTES } from '@/config/routes';
 
 interface ArticleLookupState {
   slug: string | undefined;

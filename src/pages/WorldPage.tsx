@@ -1,9 +1,9 @@
 import CategoryPageTemplate from './CategoryPageTemplate';
-import { useWorldFeed } from '@/features/world';
+import { useSectionNews } from '@/features/news';
 import { getCategoryByKey } from '@/data/categories';
 
 function WorldPage() {
-  const feed = useWorldFeed();
+  const feed = useSectionNews('world');
   const category = getCategoryByKey('world');
 
   return (

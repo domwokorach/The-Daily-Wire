@@ -1,7 +1,7 @@
 import { Link as RouterLink } from 'react-router-dom';
 import { Button, Typography } from '@mui/material';
 import Container from '@/components/common/Container';
-import { ROUTES } from '@/constants/routes';
+import { ROUTES } from '@/config/routes';
 
 function NotFoundPage() {
   return (

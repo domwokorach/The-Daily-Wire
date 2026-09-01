@@ -1,9 +1,9 @@
 import Grid from '@mui/material/Grid';
-import type { ScoreFixture } from '@/data/mockSportScores';
+import type { Fixture } from '@/features/sport';
 import MatchCard from '@/components/sport/MatchCard';
 
 interface FixtureListProps {
-  fixtures: ScoreFixture[];
+  fixtures: Fixture[];
 }
 
 function FixtureList({ fixtures }: FixtureListProps) {

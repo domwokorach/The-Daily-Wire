@@ -3,6 +3,7 @@ import { Box, Stack, Typography } from '@mui/material';
 import Container from '@/components/common/Container';
 import LoadingState from '@/components/common/LoadingState';
 import ErrorState from '@/components/common/ErrorState';
+import EmptyState from '@/components/common/EmptyState';
 import LeadStory from '@/components/news/LeadStory';
 import TextStory from '@/components/news/TextStory';
 import NewsGrid from '@/components/news/NewsGrid';
@@ -42,6 +43,8 @@ function CategoryPageTemplate({ label, description, feed }: CategoryPageTemplate
       {error && <ErrorState message={error} />}
 
       {!error && loading && <LoadingState variant="lead" />}
+
+      {!error && !loading && articles.length === 0 && <EmptyState />}
 
       {!error && !loading && lead && (
         <Grid container spacing={{ xs: 3, md: 5 }} sx={{ mb: { xs: 5, md: 7 } }}>

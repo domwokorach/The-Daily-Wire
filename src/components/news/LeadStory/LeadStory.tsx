@@ -2,7 +2,7 @@ import { Box, Link, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import type { Article } from '@/data/mockArticles';
 import { timeAgo, joinMeta } from '@/utils/formatDate';
-import { buildArticlePath } from '@/constants/routes';
+import { buildArticlePath } from '@/config/routes';
 import StatusChip from '@/components/common/StatusChip';
 import ImageWithSkeleton from '@/components/common/ImageWithSkeleton';
 

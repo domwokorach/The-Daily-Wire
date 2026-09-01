@@ -1,15 +1,20 @@
 import { Stack, Typography } from '@mui/material';
-import type { ScoreFixture } from '@/data/mockSportScores';
+import { Link as RouterLink } from 'react-router-dom';
+import type { Fixture } from '@/features/sport';
+import { formatMatchStatus, hasScore } from '@/features/sport/utils/formatFixture';
+import { buildMatchPath } from '@/config/routes';
 
 interface SportScoreCardProps {
-  fixture: ScoreFixture;
+  fixture: Fixture;
 }
 
 function SportScoreCard({ fixture }: SportScoreCardProps) {
-  const hasScore = fixture.homeScore !== null && fixture.awayScore !== null;
+  const showScore = hasScore(fixture);
 
   return (
     <Stack
+      component={RouterLink}
+      to={buildMatchPath(fixture.id)}
       direction="row"
       sx={{
         alignItems: 'center',
@@ -17,19 +22,20 @@ function SportScoreCard({ fixture }: SportScoreCardProps) {
         py: 1,
         borderBottom: '1px solid',
         borderColor: 'divider',
+        textDecoration: 'none',
         '&:last-of-type': { borderBottom: 'none' },
       }}
     >
-      <Stack spacing={0.25}>
+      <Stack spacing={0.25} sx={{ minWidth: 0 }}>
         <Typography variant="caption" color="text.disabled">
-          {fixture.competition}
+          {fixture.competition.name}
         </Typography>
-        <Typography variant="body2" sx={{ color: 'text.primary', fontWeight: 600 }}>
-          {fixture.homeTeam} v {fixture.awayTeam}
+        <Typography variant="body2" noWrap sx={{ color: 'text.primary', fontWeight: 600 }}>
+          {fixture.homeTeam.name} v {fixture.awayTeam.name}
         </Typography>
       </Stack>
-      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-        {hasScore && (
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexShrink: 0 }}>
+        {showScore && (
           <Typography
             variant="body1"
             sx={{ fontFamily: '"Inter", sans-serif', fontWeight: 700, color: 'primary.main' }}
@@ -44,7 +50,7 @@ function SportScoreCard({ fixture }: SportScoreCardProps) {
             fontWeight: fixture.live ? 700 : 400,
           }}
         >
-          {fixture.status}
+          {formatMatchStatus(fixture)}
         </Typography>
       </Stack>
     </Stack>

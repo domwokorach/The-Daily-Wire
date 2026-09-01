@@ -5,6 +5,7 @@ export { default as BusinessPage } from './BusinessPage';
 export { default as HealthPage } from './HealthPage';
 export { default as TechPage } from './TechPage';
 export { default as SportPage } from './SportPage';
+export { default as MatchPage } from './MatchPage';
 export { default as WeatherPage } from './WeatherPage';
 export { default as SearchPage } from './SearchPage';
 export { default as ArticlePage } from './ArticlePage';

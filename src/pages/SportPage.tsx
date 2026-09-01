@@ -4,15 +4,24 @@ import Container from '@/components/common/Container';
 import SectionHeader from '@/components/common/SectionHeader';
 import LoadingState from '@/components/common/LoadingState';
 import ErrorState from '@/components/common/ErrorState';
+import EmptyState from '@/components/common/EmptyState';
 import LeadStory from '@/components/news/LeadStory';
 import TextStory from '@/components/news/TextStory';
 import NewsGrid from '@/components/news/NewsGrid';
 import FixtureList from '@/components/sport/FixtureList';
-import { useSportFeed } from '@/features/sport';
+import StandingsTable from '@/components/sport/StandingsTable';
+import TopScorersList from '@/components/sport/TopScorersList';
+import { useTopHeadlines } from '@/features/news';
+import { useSportScores, useStandings, useTopScorers } from '@/features/sport';
 import { getCategoryByKey } from '@/data/categories';
 
 function SportPage() {
-  const { articles, fixtures, loading, error } = useSportFeed();
+  const { articles, loading: articlesLoading, error: articlesError } = useTopHeadlines('sport');
+  const { fixtures, loading: fixturesLoading, error: fixturesError } = useSportScores();
+  const { standings, loading: standingsLoading, error: standingsError } = useStandings();
+  const { topScorers, loading: topScorersLoading, error: topScorersError } = useTopScorers();
+  const loading = articlesLoading || fixturesLoading;
+  const error = articlesError ?? fixturesError;
   const category = getCategoryByKey('sport');
   const [lead, ...rest] = articles;
   const sideStories = rest.slice(0, 3);
@@ -34,9 +43,40 @@ function SportPage() {
       {!error && (
         <Box sx={{ mb: { xs: 5, md: 7 } }}>
           <SectionHeader title="Scores & Fixtures" />
-          {loading ? <LoadingState variant="grid" count={4} /> : <FixtureList fixtures={fixtures} />}
+          {loading ? (
+            <LoadingState variant="grid" count={4} />
+          ) : fixtures.length > 0 ? (
+            <FixtureList fixtures={fixtures} />
+          ) : (
+            <EmptyState message="No live matches or recent results right now." />
+          )}
         </Box>
       )}
+
+      <Grid container spacing={{ xs: 3, md: 5 }} sx={{ mb: { xs: 5, md: 7 } }}>
+        <Grid size={{ xs: 12, md: 7 }}>
+          <SectionHeader title="Premier League Table" />
+          {standingsError ? (
+            <ErrorState message={standingsError} />
+          ) : standingsLoading ? (
+            <LoadingState variant="inline" count={6} />
+          ) : (
+            <StandingsTable standings={standings} />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 5 }}>
+          <SectionHeader title="Top Scorers" />
+          {topScorersError ? (
+            <ErrorState message={topScorersError} />
+          ) : topScorersLoading ? (
+            <LoadingState variant="inline" count={6} />
+          ) : (
+            <TopScorersList topScorers={topScorers.slice(0, 10)} />
+          )}
+        </Grid>
+      </Grid>
+
+      {!error && !loading && articles.length === 0 && <EmptyState message="No sport stories found." />}
 
       {!error && !loading && lead && (
         <Grid container spacing={{ xs: 3, md: 5 }} sx={{ mb: { xs: 5, md: 7 } }}>

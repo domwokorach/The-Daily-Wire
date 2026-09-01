@@ -1,6 +1,6 @@
 import { Stack } from '@mui/material';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { NAV_ITEMS } from '@/data/navigation';
+import { NAV_ITEMS } from '@/constants/navigation';
 
 function DesktopNavigation() {
   const location = useLocation();

@@ -1,9 +1,9 @@
 import CategoryPageTemplate from './CategoryPageTemplate';
-import { useTechFeed } from '@/features/tech';
+import { useTopHeadlines } from '@/features/news';
 import { getCategoryByKey } from '@/data/categories';
 
 function TechPage() {
-  const feed = useTechFeed();
+  const feed = useTopHeadlines('tech');
   const category = getCategoryByKey('tech');
 
   return (

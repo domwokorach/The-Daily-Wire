@@ -3,7 +3,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import type { Article } from '@/data/mockArticles';
 import { timeAgo } from '@/utils/formatDate';
-import { buildArticlePath } from '@/constants/routes';
+import { buildArticlePath } from '@/config/routes';
 import StatusChip from '@/components/common/StatusChip';
 
 interface BreakingNewsBarProps {

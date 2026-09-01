@@ -1,9 +1,9 @@
 import CategoryPageTemplate from './CategoryPageTemplate';
-import { useHealthFeed } from '@/features/health';
+import { useTopHeadlines } from '@/features/news';
 import { getCategoryByKey } from '@/data/categories';
 
 function HealthPage() {
-  const feed = useHealthFeed();
+  const feed = useTopHeadlines('health');
   const category = getCategoryByKey('health');
 
   return (

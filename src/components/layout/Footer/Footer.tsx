@@ -3,8 +3,8 @@ import { Box, Container, Divider, IconButton, Link, Stack, Typography } from '@m
 import XIcon from '@mui/icons-material/X';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import { NAV_ITEMS } from '@/data/navigation';
-import { APP_CONFIG } from '@/constants/config';
+import { NAV_ITEMS } from '@/constants/navigation';
+import { APP_CONFIG } from '@/config/appConfig';
 
 const COMPANY_LINKS = ['About Us', 'Contact', 'Careers', 'Advertise'];
 const LEGAL_LINKS = ['Privacy Policy', 'Terms of Service', 'Accessibility'];

@@ -16,9 +16,9 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutlineOutlined';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import DesktopNavigation from '@/components/layout/DesktopNavigation';
 import MobileNavigation from '@/components/layout/MobileNavigation';
-import { NAV_ITEMS } from '@/data/navigation';
-import { APP_CONFIG } from '@/constants/config';
-import { ROUTES } from '@/constants/routes';
+import { NAV_ITEMS } from '@/constants/navigation';
+import { APP_CONFIG } from '@/config/appConfig';
+import { ROUTES } from '@/config/routes';
 import { useUIStore } from '@/store';
 
 function Header() {

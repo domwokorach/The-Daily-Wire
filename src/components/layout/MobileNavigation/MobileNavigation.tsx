@@ -11,8 +11,8 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { NAV_ITEMS } from '@/data/navigation';
-import { APP_CONFIG } from '@/constants/config';
+import { NAV_ITEMS } from '@/constants/navigation';
+import { APP_CONFIG } from '@/config/appConfig';
 import { useUIStore } from '@/store';
 
 function MobileNavigation() {

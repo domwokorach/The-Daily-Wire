@@ -64,3 +64,5 @@ export const CATEGORIES: CategoryDef[] = [
 export function getCategoryByKey(key: CategoryKey): CategoryDef | undefined {
   return CATEGORIES.find((category) => category.key === key);
 }
+
+export type ArticleCategory = Exclude<CategoryKey, 'home' | 'weather'>;

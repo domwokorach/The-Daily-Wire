@@ -8,8 +8,9 @@ import LeadStory from '@/components/news/LeadStory';
 import CompactStory from '@/components/news/CompactStory';
 import NewsGrid from '@/components/news/NewsGrid';
 import SportScoreCard from '@/components/sport/SportScoreCard';
-import { useHomeFeed } from '@/features/home';
-import { useSportScores } from '@/hooks/useSportScores';
+import HomepageWeather from '@/components/weather/HomepageWeather';
+import { useHomeFeed } from '@/features/news';
+import { useSportScores } from '@/features/sport';
 
 function HomePage() {
   const { lead, topStories, latest, sections, loading, error } = useHomeFeed();
@@ -30,6 +31,9 @@ function HomePage() {
           {loading || !lead ? <LoadingState variant="lead" /> : <LeadStory article={lead} />}
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
+          <Box sx={{ mb: { xs: 3, md: 4 } }}>
+            <HomepageWeather />
+          </Box>
           <SectionHeader title="Top Stories" />
           {loading ? (
             <LoadingState variant="inline" count={3} />

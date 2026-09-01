@@ -5,7 +5,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import Container from '@/components/common/Container';
 import ErrorState from '@/components/common/ErrorState';
 import NewsGrid from '@/components/news/NewsGrid';
-import { useNewsSearch } from '@/hooks/useNewsSearch';
+import { useNewsSearch } from '@/features/news';
 
 const SUGGESTED_QUERIES = [
   'AI',
@@ -25,7 +25,7 @@ function SearchPage() {
   const query = searchParams.get('q') ?? '';
   const [draft, setDraft] = useState(query);
 
-  const { articles, loading, error, hasMore, loadMore, refetch } = useNewsSearch(query);
+  const { articles, totalResults, loading, error, hasMore, loadMore, refetch } = useNewsSearch(query);
 
   const runSearch = (value: string) => {
     const trimmed = value.trim();
@@ -92,6 +92,12 @@ function SearchPage() {
 
       {query.trim() && !error && (
         <>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {loading && articles.length === 0
+              ? 'Searching…'
+              : `${totalResults.toLocaleString()} result${totalResults === 1 ? '' : 's'} for “${query}”`}
+          </Typography>
+
           {!loading && articles.length === 0 && (
             <Typography variant="body1" color="text.secondary" sx={{ py: 4 }}>
               No results for &ldquo;{query}&rdquo;. Try a different search term.

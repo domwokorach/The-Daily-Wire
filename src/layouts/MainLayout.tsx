@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 import Header from '@/components/layout/Header';
 import BreakingNewsBar from '@/components/layout/BreakingNewsBar';
 import Footer from '@/components/layout/Footer';
-import { useBreakingNews } from '@/hooks/useBreakingNews';
+import { useBreakingNews } from '@/features/news';
 
 function MainLayout() {
   const { articles } = useBreakingNews();

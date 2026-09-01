@@ -1,9 +1,9 @@
 import CategoryPageTemplate from './CategoryPageTemplate';
-import { useBusinessFeed } from '@/features/business';
+import { useTopHeadlines } from '@/features/news';
 import { getCategoryByKey } from '@/data/categories';
 
 function BusinessPage() {
-  const feed = useBusinessFeed();
+  const feed = useTopHeadlines('business');
   const category = getCategoryByKey('business');
 
   return (

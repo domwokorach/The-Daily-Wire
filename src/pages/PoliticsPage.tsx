@@ -1,9 +1,9 @@
 import CategoryPageTemplate from './CategoryPageTemplate';
-import { usePoliticsFeed } from '@/features/politics';
+import { useSectionNews } from '@/features/news';
 import { getCategoryByKey } from '@/data/categories';
 
 function PoliticsPage() {
-  const feed = usePoliticsFeed();
+  const feed = useSectionNews('politics');
   const category = getCategoryByKey('politics');
 
   return (

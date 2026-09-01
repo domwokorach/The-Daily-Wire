@@ -4,7 +4,7 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import type { Article } from '@/data/mockArticles';
 import { timeAgo, joinMeta } from '@/utils/formatDate';
-import { buildArticlePath } from '@/constants/routes';
+import { buildArticlePath } from '@/config/routes';
 import { useAppContext } from '@/context/useAppContext';
 import StatusChip from '@/components/common/StatusChip';
 import ImageWithSkeleton from '@/components/common/ImageWithSkeleton';
