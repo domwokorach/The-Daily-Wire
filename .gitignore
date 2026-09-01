@@ -33,3 +33,4 @@ server/data/
 *.sw?
 .vercel
 .env*
+footballdata-check.log

@@ -16,7 +16,7 @@ import { normalizeTeams } from '../providers/apiFootball/normalizeTeam.js';
 import { normalizeTopScorers } from '../providers/apiFootball/normalizeTopScorers.js';
 import { normalizeEvents, normalizeLineups, normalizeStatistics } from '../providers/apiFootball/normalizeMatchDetail.js';
 import { ApiFootballError, getSafeSportsErrorMessage, getSafeSportsErrorStatus } from '../providers/apiFootball/errors.js';
-import { cacheGet, cacheSet } from '../cache/cacheClient.js';
+import { cacheGet, cacheGetStale, cacheSet } from '../cache/cacheClient.js';
 import {
   sportsLiveKey,
   sportsFixturesKey,
@@ -55,13 +55,28 @@ function toSafeErrorResponse(logLabel, err) {
   };
 }
 
+// How long a stale (TTL-expired) cache entry is still trusted enough to
+// serve as a fallback when the upstream provider errors (e.g. free-plan
+// quota exhausted) — long enough to ride out a rate limit, short enough
+// that a live score doesn't sit stale for a whole news cycle.
+const STALE_FALLBACK_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+
 async function withCache(cacheKey, ttl, load) {
   const cached = cacheGet(cacheKey);
   if (cached) return { status: 200, body: cached };
 
-  const body = await load();
-  cacheSet(cacheKey, body, ttl);
-  return { status: 200, body };
+  try {
+    const body = await load();
+    cacheSet(cacheKey, body, ttl);
+    return { status: 200, body };
+  } catch (err) {
+    const stale = cacheGetStale(cacheKey, STALE_FALLBACK_MAX_AGE_MS);
+    if (stale) {
+      console.warn('[sports] upstream failed, serving stale cache for', cacheKey, err?.message);
+      return { status: 200, body: stale };
+    }
+    throw err;
+  }
 }
 
 export async function getLiveMatches({ league }) {
