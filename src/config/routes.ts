@@ -10,6 +10,13 @@ export const ROUTES = {
   WEATHER: '/weather',
   SEARCH: '/search',
   ARTICLE: '/article/:slug',
+  LOGIN: '/login',
+  REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
+  VERIFY_EMAIL: '/verify-email',
+  PROFILE: '/profile',
+  SETTINGS: '/settings',
   NOT_FOUND: '*',
 } as const;
 

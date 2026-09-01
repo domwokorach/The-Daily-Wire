@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Local SQLite database (dev data, never committed)
+server/data/
+
 # Environment variables (never commit real secrets)
 .env
 .env.local

@@ -123,4 +123,79 @@ export const components: ThemeOptions['components'] = {
       },
     },
   },
+  MuiOutlinedInput: {
+    styleOverrides: {
+      root: {
+        borderRadius: 3,
+        backgroundColor: 'rgba(255,255,255,0.02)',
+        '& .MuiOutlinedInput-notchedOutline': {
+          borderColor: 'rgba(255,255,255,0.16)',
+        },
+        '&:hover .MuiOutlinedInput-notchedOutline': {
+          borderColor: 'rgba(255,255,255,0.32)',
+        },
+        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+          borderColor: '#C9A86A',
+          borderWidth: 1,
+        },
+        '&.Mui-error .MuiOutlinedInput-notchedOutline': {
+          borderColor: '#9C3B3B',
+        },
+      },
+    },
+  },
+  MuiFormControl: {
+    styleOverrides: {
+      root: {
+        width: '100%',
+      },
+    },
+  },
+  MuiFormLabel: {
+    styleOverrides: {
+      root: {
+        color: '#B8C2D1',
+        '&.Mui-focused': {
+          color: '#C9A86A',
+        },
+      },
+    },
+  },
+  MuiFormHelperText: {
+    styleOverrides: {
+      root: {
+        color: '#8896AA',
+        '&.Mui-error': {
+          color: '#9C3B3B',
+        },
+      },
+    },
+  },
+  MuiDialog: {
+    styleOverrides: {
+      paper: {
+        backgroundColor: '#101F3A',
+        backgroundImage: 'none',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 3,
+      },
+    },
+  },
+  MuiSnackbarContent: {
+    styleOverrides: {
+      root: {
+        backgroundColor: '#101F3A',
+        borderRadius: 3,
+      },
+    },
+  },
+  MuiMenu: {
+    styleOverrides: {
+      paper: {
+        backgroundColor: '#101F3A',
+        backgroundImage: 'none',
+        border: '1px solid rgba(255,255,255,0.08)',
+      },
+    },
+  },
 };

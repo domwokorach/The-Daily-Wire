@@ -7,6 +7,7 @@ import Container from '@/components/common/Container';
 import LoadingState from '@/components/common/LoadingState';
 import ErrorState from '@/components/common/ErrorState';
 import ResponsiveImage from '@/components/common/ResponsiveImage';
+import CommentList from '@/components/comments/CommentList';
 import type { Article } from '@/data/mockArticles';
 import { getArticleBySlug } from '@/features/news/services/newsService';
 import { formatFullDate, joinMeta } from '@/utils/formatDate';
@@ -117,6 +118,7 @@ function ArticlePage() {
           </Box>
         )}
       </Stack>
+      <CommentList articleId={article.id} />
     </Container>
   );
 }

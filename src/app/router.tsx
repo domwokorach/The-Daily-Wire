@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import MainLayout from '@/layouts/MainLayout';
+import AuthGuard from '@/components/auth/AuthGuard';
 import {
   HomePage,
   PoliticsPage,
@@ -12,6 +13,13 @@ import {
   WeatherPage,
   SearchPage,
   ArticlePage,
+  LoginPage,
+  RegisterPage,
+  ForgotPasswordPage,
+  ResetPasswordPage,
+  VerifyEmailPage,
+  ProfilePage,
+  SettingsPage,
   NotFoundPage,
 } from '@/pages';
 import { ROUTES } from '@/config/routes';
@@ -31,6 +39,27 @@ function AppRoutes() {
         <Route path={ROUTES.WEATHER} element={<WeatherPage />} />
         <Route path={ROUTES.SEARCH} element={<SearchPage />} />
         <Route path={ROUTES.ARTICLE} element={<ArticlePage />} />
+        <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+        <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+        <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+        <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
+        <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmailPage />} />
+        <Route
+          path={ROUTES.PROFILE}
+          element={
+            <AuthGuard>
+              <ProfilePage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path={ROUTES.SETTINGS}
+          element={
+            <AuthGuard>
+              <SettingsPage />
+            </AuthGuard>
+          }
+        />
         <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage />} />
       </Route>
     </Routes>

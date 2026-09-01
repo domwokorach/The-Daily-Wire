@@ -29,7 +29,7 @@ async function request<T>(path: string, options: ApiClientOptions = {}): Promise
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(path, { ...init, signal: controller.signal });
+    const response = await fetch(path, { ...init, credentials: 'include', signal: controller.signal });
     if (!response.ok) {
       const body = await response.json().catch(() => null);
       throw new ApiError(
@@ -38,6 +38,7 @@ async function request<T>(path: string, options: ApiClientOptions = {}): Promise
         body?.code as string | undefined,
       );
     }
+    if (response.status === 204) return undefined as T;
     return (await response.json()) as T;
   } finally {
     clearTimeout(timeout);
@@ -52,15 +53,22 @@ export function getErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-export const apiClient = {
-  get: <T>(path: string, options?: ApiClientOptions) => request<T>(path, { ...options, method: 'GET' }),
-  post: <T>(path: string, body: unknown, options?: ApiClientOptions) =>
+function withJsonBody<T>(method: string) {
+  return (path: string, body: unknown, options?: ApiClientOptions) =>
     request<T>(path, {
       ...options,
-      method: 'POST',
+      method,
       body: JSON.stringify(body),
       headers: { 'Content-Type': 'application/json', ...options?.headers },
-    }),
+    });
+}
+
+export const apiClient = {
+  get: <T>(path: string, options?: ApiClientOptions) => request<T>(path, { ...options, method: 'GET' }),
+  post: <T>(path: string, body: unknown, options?: ApiClientOptions) => withJsonBody<T>('POST')(path, body, options),
+  put: <T>(path: string, body: unknown, options?: ApiClientOptions) => withJsonBody<T>('PUT')(path, body, options),
+  patch: <T>(path: string, body: unknown, options?: ApiClientOptions) => withJsonBody<T>('PATCH')(path, body, options),
+  delete: <T>(path: string, options?: ApiClientOptions) => request<T>(path, { ...options, method: 'DELETE' }),
 };
 
 export type QueryParams = Record<string, string | number | undefined>;

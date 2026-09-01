@@ -16,15 +16,19 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutlineOutlined';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import DesktopNavigation from '@/components/layout/DesktopNavigation';
 import MobileNavigation from '@/components/layout/MobileNavigation';
+import AccountMenu from '@/components/auth/AccountMenu';
 import { NAV_ITEMS } from '@/constants/navigation';
 import { APP_CONFIG } from '@/config/appConfig';
 import { ROUTES } from '@/config/routes';
-import { useUIStore } from '@/store';
+import { useUIStore, useAuthStore } from '@/store';
+import { useAuth } from '@/features/auth';
 
 function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const openDrawer = useUIStore((state) => state.openDrawer);
+  const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
+  useAuth();
 
   const activeIndex = NAV_ITEMS.findIndex((item) => item.path === location.pathname);
 
@@ -82,12 +86,17 @@ function Header() {
             <IconButton aria-label="Search" onClick={() => navigate(ROUTES.SEARCH)}>
               <SearchIcon fontSize="small" />
             </IconButton>
-            <IconButton
-              aria-label="Account"
-              sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
-            >
-              <PersonOutlineIcon fontSize="small" />
-            </IconButton>
+            {isAuthenticated ? (
+              <AccountMenu />
+            ) : (
+              <IconButton
+                aria-label="Account"
+                onClick={() => navigate(ROUTES.LOGIN)}
+                sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+              >
+                <PersonOutlineIcon fontSize="small" />
+              </IconButton>
+            )}
             <Button
               variant="contained"
               color="primary"

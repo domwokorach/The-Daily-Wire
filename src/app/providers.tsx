@@ -5,6 +5,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { theme } from '@/theme';
 import { AppProvider } from '@/context/AppContext';
+import BreakingAlertProvider from '@/components/notifications/BreakingAlertProvider';
 import { queryClient } from './queryClient';
 
 interface AppProvidersProps {
@@ -17,7 +18,9 @@ function AppProviders({ children }: AppProvidersProps) {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <AppProvider>
-          <BrowserRouter>{children}</BrowserRouter>
+          <BrowserRouter>
+            <BreakingAlertProvider>{children}</BreakingAlertProvider>
+          </BrowserRouter>
         </AppProvider>
       </ThemeProvider>
     </QueryClientProvider>

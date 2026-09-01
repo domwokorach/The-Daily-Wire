@@ -33,3 +33,21 @@ export const sportsKeys = {
   topScorers: () => ['sports', 'top-scorers'] as const,
   match: (id: number) => ['sports', 'match', id] as const,
 };
+
+/** Centralised TanStack Query key factory for auth/account. */
+export const authKeys = {
+  all: ['auth'] as const,
+  me: () => ['auth', 'me'] as const,
+};
+
+/** Centralised TanStack Query key factory for article comments. */
+export const commentKeys = {
+  all: ['comments'] as const,
+  byArticle: (articleId: string) => ['comments', 'article', articleId] as const,
+};
+
+/** Centralised TanStack Query key factory for notification preferences. */
+export const notificationKeys = {
+  all: ['notifications'] as const,
+  preferences: () => ['notifications', 'preferences'] as const,
+};
