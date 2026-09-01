@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import { Alert, Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
 import { useSubscribe } from '@/features/subscription';
 import type { SubscriptionPreferences } from '@/features/subscription';
+import { ROUTES } from '@/config/routes';
 
 interface SubscribeFormProps {
   variant?: 'default' | 'compact';
@@ -95,7 +97,11 @@ function SubscribeForm({ variant = 'default', secondaryText, preferences, onSubs
           </Button>
         </Stack>
         <Typography variant="caption" color="text.disabled">
-          By subscribing, you agree to receive the email updates you select. You can unsubscribe at any time.
+          By subscribing, you agree to receive the email updates you select. You can unsubscribe at any time. See our{' '}
+          <Link component={RouterLink} to={ROUTES.PRIVACY} color="inherit">
+            Privacy Policy
+          </Link>
+          .
         </Typography>
       </Stack>
     </Box>

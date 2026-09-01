@@ -22,6 +22,9 @@ export const ROUTES = {
   SUBSCRIPTION_CONFIRM: '/subscription/confirm',
   SUBSCRIPTION_MANAGE: '/subscription/manage',
   SUBSCRIPTION_UNSUBSCRIBE: '/subscription/unsubscribe',
+  TERMS: '/terms',
+  PRIVACY: '/privacy',
+  COOKIES: '/cookies',
   NOT_FOUND: '*',
 } as const;
 

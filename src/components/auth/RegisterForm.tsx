@@ -116,6 +116,17 @@ function RegisterForm() {
         <Button type="submit" variant="contained" color="primary" size="large" disabled={isLoading} fullWidth>
           {isLoading ? 'Creating account…' : 'Create account'}
         </Button>
+        <Typography variant="caption" color="text.disabled" sx={{ textAlign: 'center', display: 'block' }}>
+          By creating an account, you agree to our{' '}
+          <Link component={RouterLink} to={ROUTES.TERMS}>
+            Terms of Service
+          </Link>{' '}
+          and acknowledge our{' '}
+          <Link component={RouterLink} to={ROUTES.PRIVACY}>
+            Privacy Policy
+          </Link>
+          .
+        </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
           Already have an account?{' '}
           <Link component={RouterLink} to={ROUTES.LOGIN}>

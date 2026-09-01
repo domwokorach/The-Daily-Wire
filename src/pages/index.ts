@@ -21,3 +21,6 @@ export { default as SavedArticlesPage } from './SavedArticlesPage';
 export { default as SubscribePage } from './SubscribePage';
 export { default as SubscriptionConfirmedPage } from './SubscriptionConfirmedPage';
 export { default as UnsubscribePage } from './UnsubscribePage';
+export { default as TermsPage } from './TermsPage';
+export { default as PrivacyPolicyPage } from './PrivacyPolicyPage';
+export { default as CookiePolicyPage } from './CookiePolicyPage';

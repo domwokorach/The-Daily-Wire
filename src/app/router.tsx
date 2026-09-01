@@ -24,6 +24,9 @@ import {
   SubscribePage,
   SubscriptionConfirmedPage,
   UnsubscribePage,
+  TermsPage,
+  PrivacyPolicyPage,
+  CookiePolicyPage,
   NotFoundPage,
 } from '@/pages';
 import { ROUTES } from '@/config/routes';
@@ -76,6 +79,9 @@ function AppRoutes() {
         <Route path={ROUTES.SUBSCRIPTION_CONFIRM} element={<SubscriptionConfirmedPage />} />
         <Route path={ROUTES.SUBSCRIPTION_MANAGE} element={<UnsubscribePage />} />
         <Route path={ROUTES.SUBSCRIPTION_UNSUBSCRIBE} element={<UnsubscribePage />} />
+        <Route path={ROUTES.TERMS} element={<TermsPage />} />
+        <Route path={ROUTES.PRIVACY} element={<PrivacyPolicyPage />} />
+        <Route path={ROUTES.COOKIES} element={<CookiePolicyPage />} />
         <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage />} />
       </Route>
     </Routes>

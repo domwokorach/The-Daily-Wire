@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import { Alert, Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
 import { useCreateComment } from '@/features/comments';
 import type { CommentSort } from '@/features/comments';
+import { ROUTES } from '@/config/routes';
 
 const BODY_MAX_LENGTH = 2000;
 
@@ -49,6 +51,13 @@ function CommentForm({ articleId, sort = 'newest' }: CommentFormProps) {
             {isLoading ? 'Posting…' : 'Post Comment'}
           </Button>
         </Box>
+        <Typography variant="caption" color="text.disabled">
+          Comments are subject to our{' '}
+          <Link component={RouterLink} to={ROUTES.TERMS} color="inherit">
+            Terms of Service
+          </Link>
+          .
+        </Typography>
       </Stack>
     </Box>
   );

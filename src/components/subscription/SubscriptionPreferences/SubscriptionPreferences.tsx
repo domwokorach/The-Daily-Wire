@@ -21,17 +21,23 @@ function SubscriptionPreferences({ preferences, onChange, disabled }: Subscripti
         Email Updates
       </Typography>
       {delivery.map((option) => (
-        <FormControlLabel
-          key={option.key}
-          control={
-            <Switch
-              checked={Boolean(preferences[option.key])}
-              onChange={(e) => onChange(option.key, e.target.checked)}
-              disabled={disabled}
-            />
-          }
-          label={option.label}
-        />
+        <div key={option.key}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={Boolean(preferences[option.key])}
+                onChange={(e) => onChange(option.key, e.target.checked)}
+                disabled={disabled}
+              />
+            }
+            label={option.label}
+          />
+          {option.key === 'breakingNews' && (
+            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', pl: 4.5, mt: -0.5 }}>
+              Breaking News alerts are optional. Delivery timing cannot be guaranteed.
+            </Typography>
+          )}
+        </div>
       ))}
       <Divider sx={{ my: 1.5 }} />
       <Typography variant="overline" color="primary.main">

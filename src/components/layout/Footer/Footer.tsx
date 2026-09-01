@@ -1,14 +1,22 @@
 import Grid from '@mui/material/Grid';
 import { Box, Container, Divider, IconButton, Link, Stack, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import XIcon from '@mui/icons-material/X';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import { NAV_ITEMS } from '@/constants/navigation';
 import { APP_CONFIG } from '@/config/appConfig';
+import { ROUTES } from '@/config/routes';
 import SubscribeForm from '@/components/subscription/SubscribeForm';
 
 const COMPANY_LINKS = ['About Us', 'Contact', 'Careers', 'Advertise'];
-const LEGAL_LINKS = ['Privacy Policy', 'Terms of Service', 'Accessibility'];
+// Only routes that actually exist — no placeholder legal pages linked here.
+const LEGAL_LINKS = [
+  { label: 'Terms of Service', path: ROUTES.TERMS },
+  { label: 'Privacy Policy', path: ROUTES.PRIVACY },
+  { label: 'Cookie Policy', path: ROUTES.COOKIES },
+  { label: 'Manage Subscription', path: ROUTES.SUBSCRIBE },
+];
 
 function Footer() {
   return (
@@ -125,15 +133,16 @@ function Footer() {
               ))}
             </Stack>
             <Stack spacing={1}>
-              {LEGAL_LINKS.map((label) => (
+              {LEGAL_LINKS.map((link) => (
                 <Link
-                  key={label}
-                  href="#"
+                  key={link.label}
+                  component={RouterLink}
+                  to={link.path}
                   underline="none"
                   variant="body2"
                   sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
                 >
-                  {label}
+                  {link.label}
                 </Link>
               ))}
             </Stack>

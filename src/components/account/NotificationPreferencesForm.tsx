@@ -59,6 +59,9 @@ function NotificationPreferencesFields({ initialPreferences }: NotificationPrefe
         }
         label="Breaking news alerts"
       />
+      <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: -0.5, mb: 0.5 }}>
+        Breaking News alerts are optional. Delivery timing cannot be guaranteed.
+      </Typography>
       <Divider sx={{ my: 1 }} />
       {TOPIC_CATEGORIES.map((category) => (
         <FormControlLabel
