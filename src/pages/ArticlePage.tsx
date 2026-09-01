@@ -6,7 +6,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Container from '@/components/common/Container';
 import LoadingState from '@/components/common/LoadingState';
 import ErrorState from '@/components/common/ErrorState';
-import ImageWithSkeleton from '@/components/common/ImageWithSkeleton';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import type { Article } from '@/data/mockArticles';
 import { getArticleBySlug } from '@/features/news/services/newsService';
 import { formatFullDate, joinMeta } from '@/utils/formatDate';
@@ -88,7 +88,13 @@ function ArticlePage() {
         {joinMeta(article.author ? `By ${article.author}` : undefined, formatFullDate(article.timestamp))}
       </Typography>
       <Box sx={{ mb: 3 }}>
-        <ImageWithSkeleton src={article.image} alt={article.headline} lazy={false} />
+        <ResponsiveImage
+          variant="hero"
+          src={article.image}
+          alt={article.headline}
+          lazy={false}
+          fetchPriority="high"
+        />
       </Box>
       <Stack spacing={2.5}>
         {article.summary && (

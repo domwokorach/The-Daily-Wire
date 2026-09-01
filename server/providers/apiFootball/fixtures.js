@@ -4,10 +4,6 @@ export function fetchLiveFixtures({ league }) {
   return apiFootballRequest('fixtures', { live: 'all', league });
 }
 
-export function fetchFixtures({ league, season, date, team }) {
-  return apiFootballRequest('fixtures', { league, season, date, team });
-}
-
 /**
  * Recently completed fixtures. Deliberately a `status` + `from`/`to` date
  * range rather than API-Football's `last` param — `last` is a paid-plan-only
@@ -17,6 +13,13 @@ export function fetchFixtures({ league, season, date, team }) {
  */
 export function fetchRecentFixtures({ league, season, from, to }) {
   return apiFootballRequest('fixtures', { league, season, status: 'FT-AET-PEN-AWD-WO', from, to });
+}
+
+/** Not-yet-started fixtures in a forward-looking date range — the
+ * counterpart to `fetchRecentFixtures`. Same `status` + `from`/`to`
+ * pattern, since it's confirmed free-plan compatible. */
+export function fetchUpcomingFixtures({ league, season, from, to }) {
+  return apiFootballRequest('fixtures', { league, season, status: 'NS-TBD', from, to });
 }
 
 export function fetchFixtureById(fixtureId) {

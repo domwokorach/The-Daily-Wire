@@ -4,7 +4,7 @@ import type { Article } from '@/data/mockArticles';
 import { timeAgo, joinMeta } from '@/utils/formatDate';
 import { buildArticlePath } from '@/config/routes';
 import StatusChip from '@/components/common/StatusChip';
-import ImageWithSkeleton from '@/components/common/ImageWithSkeleton';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 
 interface LeadStoryProps {
   article: Article;
@@ -14,7 +14,13 @@ function LeadStory({ article }: LeadStoryProps) {
   return (
     <Box component="article">
       <Box sx={{ mb: 2 }}>
-        <ImageWithSkeleton src={article.image} alt={article.headline} lazy={false}>
+        <ResponsiveImage
+          variant="hero"
+          src={article.image}
+          alt={article.headline}
+          lazy={false}
+          fetchPriority="high"
+        >
           {(article.breaking || article.live) && (
             <StatusChip
               status={article.live ? 'live' : 'breaking'}
@@ -27,7 +33,7 @@ function LeadStory({ article }: LeadStoryProps) {
               }}
             />
           )}
-        </ImageWithSkeleton>
+        </ResponsiveImage>
       </Box>
       {article.categoryLabel && (
         <Typography variant="overline" color="primary.main">

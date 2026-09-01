@@ -1,5 +1,5 @@
 import { useLiveMatches } from './useLiveMatches';
-import { useResults } from './useResults';
+import { useRecentResults } from './useRecentResults';
 import type { Fixture } from '../types';
 
 interface UseSportScoresResult {
@@ -8,12 +8,13 @@ interface UseSportScoresResult {
   error: string | null;
 }
 
-/** Compact "Scores & Fixtures" feed used by the homepage widget and the
- * Sport page's top strip — live matches when there are any, the most
- * recent finished results otherwise. */
+/** Compact scores feed used by the homepage widget — live matches when
+ * there are any, the most recent finished results otherwise. The Sport
+ * page itself uses `useLiveMatches`/`useRecentResults` directly so it can
+ * show both in one coordinated module. */
 export function useSportScores(): UseSportScoresResult {
   const live = useLiveMatches();
-  const results = useResults(14);
+  const results = useRecentResults(14);
 
   if (live.hasLive) {
     return { fixtures: live.fixtures, loading: live.loading, error: live.error };

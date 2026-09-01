@@ -27,7 +27,7 @@ export const weatherKeys = {
 export const sportsKeys = {
   all: ['sports'] as const,
   live: () => ['sports', 'live'] as const,
-  fixtures: (date?: string) => ['sports', 'fixtures', date ?? 'default'] as const,
+  fixtures: (days: number) => ['sports', 'fixtures', days] as const,
   results: (days: number) => ['sports', 'results', days] as const,
   standings: () => ['sports', 'standings'] as const,
   topScorers: () => ['sports', 'top-scorers'] as const,

@@ -7,7 +7,7 @@ import { timeAgo, joinMeta } from '@/utils/formatDate';
 import { buildArticlePath } from '@/config/routes';
 import { useAppContext } from '@/context/useAppContext';
 import StatusChip from '@/components/common/StatusChip';
-import ImageWithSkeleton from '@/components/common/ImageWithSkeleton';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 
 interface ArticleCardProps {
   article: Article;
@@ -36,7 +36,7 @@ function ArticleCard({ article, lazy = true }: ArticleCardProps) {
         },
       }}
     >
-      <ImageWithSkeleton src={article.image} alt={article.headline} lazy={lazy}>
+      <ResponsiveImage variant="card" src={article.image} alt={article.headline} lazy={lazy}>
         {(article.breaking || article.live) && (
           <StatusChip
             status={article.live ? 'live' : 'breaking'}
@@ -63,7 +63,7 @@ function ArticleCard({ article, lazy = true }: ArticleCardProps) {
             <BookmarkBorderIcon fontSize="small" sx={{ color: 'text.primary' }} />
           )}
         </IconButton>
-      </ImageWithSkeleton>
+      </ResponsiveImage>
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
         {article.categoryLabel && (
           <Typography variant="overline" color="primary.main" sx={{ fontSize: '0.7rem' }}>

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { sportsKeys } from '@/constants/queryKeys';
 import { getErrorMessage } from '@/services/apiClient';
-import { getFixtures, type FixturesQuery } from '../services/sportService';
+import { getFixtures } from '../services/sportService';
 import type { Fixture } from '../types';
 
 interface UseFixturesResult {
@@ -10,11 +10,14 @@ interface UseFixturesResult {
   error: string | null;
 }
 
-export function useFixtures(params: FixturesQuery = {}): UseFixturesResult {
+/** Upcoming Premier League fixtures only — see `getFixtures` in
+ * `sportService.ts`. Cached 10 minutes; fixtures don't change minute to
+ * minute the way live scores do. */
+export function useFixtures(days = 14): UseFixturesResult {
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: sportsKeys.fixtures(params.date),
-    queryFn: () => getFixtures(params),
-    staleTime: 5 * 60 * 1000,
+    queryKey: sportsKeys.fixtures(days),
+    queryFn: () => getFixtures(days),
+    staleTime: 10 * 60 * 1000,
     retry: 1,
   });
 

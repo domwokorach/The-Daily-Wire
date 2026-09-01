@@ -1,14 +1,37 @@
 import { useParams, Link as RouterLink } from 'react-router-dom';
-import { Avatar, Box, Button, Card, Chip, Grid, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, Chip, Grid, Stack, Typography } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Container from '@/components/common/Container';
 import SectionHeader from '@/components/common/SectionHeader';
 import LoadingState from '@/components/common/LoadingState';
 import ErrorState from '@/components/common/ErrorState';
 import StatusChip from '@/components/common/StatusChip';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 import { useMatchDetail } from '@/features/sport';
 import { formatKickoff, formatMatchStatus, hasScore } from '@/features/sport/utils/formatFixture';
 import { ROUTES } from '@/config/routes';
+
+const HERO_BADGE_SIZE = 64;
+const EVENT_BADGE_SIZE = 18;
+const LINEUP_BADGE_SIZE = 20;
+
+function TeamBadge({
+  logo,
+  name,
+  size,
+}: {
+  logo: string | null | undefined;
+  name: string | undefined;
+  size: number;
+}) {
+  return logo ? (
+    <Box sx={{ width: size, height: size, flexShrink: 0 }}>
+      <ResponsiveImage variant="badge" src={logo} alt={`${name} badge`} />
+    </Box>
+  ) : (
+    <Box sx={{ width: size, height: size, flexShrink: 0 }} />
+  );
+}
 
 function MatchPage() {
   const { id } = useParams<{ id: string }>();
@@ -56,7 +79,7 @@ function MatchPage() {
             </Stack>
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'center' }} spacing={{ xs: 2, sm: 4 }}>
               <Stack sx={{ alignItems: 'center', width: { xs: 96, sm: 140 } }} spacing={1}>
-                <Avatar src={match.fixture.homeTeam.logo ?? undefined} variant="square" sx={{ width: 48, height: 48, bgcolor: 'transparent' }} />
+                <TeamBadge logo={match.fixture.homeTeam.logo} name={match.fixture.homeTeam.name} size={HERO_BADGE_SIZE} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, textAlign: 'center' }}>
                   {match.fixture.homeTeam.name}
                 </Typography>
@@ -68,7 +91,7 @@ function MatchPage() {
                 {hasScore(match.fixture) ? `${match.fixture.homeScore} - ${match.fixture.awayScore}` : 'vs'}
               </Typography>
               <Stack sx={{ alignItems: 'center', width: { xs: 96, sm: 140 } }} spacing={1}>
-                <Avatar src={match.fixture.awayTeam.logo ?? undefined} variant="square" sx={{ width: 48, height: 48, bgcolor: 'transparent' }} />
+                <TeamBadge logo={match.fixture.awayTeam.logo} name={match.fixture.awayTeam.name} size={HERO_BADGE_SIZE} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, textAlign: 'center' }}>
                   {match.fixture.awayTeam.name}
                 </Typography>
@@ -96,7 +119,7 @@ function MatchPage() {
                       {event.minute}
                       {event.extraMinute ? `+${event.extraMinute}` : ''}'
                     </Typography>
-                    <Avatar src={event.team.logo ?? undefined} variant="square" sx={{ width: 18, height: 18, bgcolor: 'transparent' }} />
+                    <TeamBadge logo={event.team.logo} name={event.team.name} size={EVENT_BADGE_SIZE} />
                     <Box sx={{ minWidth: 0 }}>
                       <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
                         {event.type}
@@ -122,7 +145,7 @@ function MatchPage() {
                 {match.lineups.map((lineup) => (
                   <Grid key={lineup.team.id} size={{ xs: 12, sm: 6 }}>
                     <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
-                      <Avatar src={lineup.team.logo ?? undefined} variant="square" sx={{ width: 20, height: 20, bgcolor: 'transparent' }} />
+                      <TeamBadge logo={lineup.team.logo} name={lineup.team.name} size={LINEUP_BADGE_SIZE} />
                       <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                         {lineup.team.name}
                       </Typography>

@@ -1,7 +1,7 @@
 import {
   fetchLiveFixtures,
-  fetchFixtures,
   fetchRecentFixtures,
+  fetchUpcomingFixtures,
   fetchFixtureById,
   fetchFixtureEvents,
   fetchFixtureLineups,
@@ -75,24 +75,21 @@ export async function getLiveMatches({ league }) {
   }
 }
 
-export async function getFixtures(params) {
-  try {
-    return await withCache(sportsFixturesKey(params), CACHE_TTL.SPORTS_FIXTURES, async () => {
-      const raw = await fetchFixtures(params);
-      return { fixtures: normalizeFixtures(raw?.response) };
-    });
-  } catch (err) {
-    return toSafeErrorResponse('[sports/fixtures] upstream error', err);
-  }
-}
-
 function toDateOnly(date) {
   return date.toISOString().slice(0, 10);
 }
 
+function byKickoffAscending(a, b) {
+  return Date.parse(a.kickoff ?? 0) - Date.parse(b.kickoff ?? 0);
+}
+
+const MAX_RESULTS = 10;
+const MAX_UPCOMING = 10;
+
 /** Results = finished fixtures in a trailing date window (`days` back from
  * today), not `status=finished` alone — narrowing by date keeps the
- * request/response small and avoids scanning an entire season. */
+ * request/response small and avoids scanning an entire season. Newest
+ * first, capped to a handful of matches — never a full-season dump. */
 export async function getResults({ league, season, days }) {
   const to = new Date();
   const from = new Date(to.getTime() - days * 24 * 60 * 60 * 1000);
@@ -101,11 +98,38 @@ export async function getResults({ league, season, days }) {
   try {
     return await withCache(cacheKey, CACHE_TTL.SPORTS_RESULTS, async () => {
       const raw = await fetchRecentFixtures({ league, season, from: toDateOnly(from), to: toDateOnly(to) });
-      const fixtures = normalizeFixtures(raw?.response).filter((fixture) => fixture.status.code === 'finished');
+      const fixtures = normalizeFixtures(raw?.response)
+        .filter((fixture) => fixture.status.code === 'finished')
+        .sort(byKickoffAscending)
+        .reverse()
+        .slice(0, MAX_RESULTS);
       return { fixtures };
     });
   } catch (err) {
     return toSafeErrorResponse('[sports/results] upstream error', err);
+  }
+}
+
+/** Fixtures = upcoming, not-yet-started matches in a forward-looking date
+ * window (`days` ahead of today) — the mirror image of `getResults`.
+ * Nearest match first, capped to a handful — never past results, never a
+ * full-season dump. */
+export async function getFixtures({ league, season, days }) {
+  const from = new Date();
+  const to = new Date(from.getTime() + days * 24 * 60 * 60 * 1000);
+  const cacheKey = sportsFixturesKey({ league, season, days, from: toDateOnly(from) });
+
+  try {
+    return await withCache(cacheKey, CACHE_TTL.SPORTS_FIXTURES, async () => {
+      const raw = await fetchUpcomingFixtures({ league, season, from: toDateOnly(from), to: toDateOnly(to) });
+      const fixtures = normalizeFixtures(raw?.response)
+        .filter((fixture) => fixture.status.code === 'scheduled')
+        .sort(byKickoffAscending)
+        .slice(0, MAX_UPCOMING);
+      return { fixtures };
+    });
+  } catch (err) {
+    return toSafeErrorResponse('[sports/fixtures] upstream error', err);
   }
 }
 

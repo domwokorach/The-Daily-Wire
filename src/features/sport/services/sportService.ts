@@ -1,4 +1,4 @@
-import { cachedGet, type QueryParams } from '@/services/apiClient';
+import { cachedGet } from '@/services/apiClient';
 import { APP_CONFIG } from '@/config/appConfig';
 import type { Fixture, StandingRow, TopScorerRow, MatchDetail } from '../types';
 
@@ -16,20 +16,15 @@ export function getLiveMatches(): Promise<{ fixtures: Fixture[] }> {
   return cachedGet<{ fixtures: Fixture[] }>(`${SPORTS_ENDPOINT}/live`, {}, SPORTS_DEFAULTS.cacheTtlMs);
 }
 
-export interface FixturesQuery {
-  date?: string;
-  team?: number;
+/** Upcoming, not-yet-started fixtures only — never mixes in past results.
+ * `days` is a forward-looking window (default 14 server-side), never a
+ * specific calendar date. */
+export function getFixtures(days = 14): Promise<{ fixtures: Fixture[] }> {
+  return cachedGet<{ fixtures: Fixture[] }>(`${SPORTS_ENDPOINT}/fixtures`, { days }, 10 * 60 * 1000);
 }
 
-export function getFixtures(params: FixturesQuery = {}): Promise<{ fixtures: Fixture[] }> {
-  return cachedGet<{ fixtures: Fixture[] }>(
-    `${SPORTS_ENDPOINT}/fixtures`,
-    params as QueryParams,
-    5 * 60 * 1000,
-  );
-}
-
-export function getResults(days = 14): Promise<{ fixtures: Fixture[] }> {
+/** Recently completed fixtures only — never mixes in upcoming fixtures. */
+export function getRecentResults(days = 14): Promise<{ fixtures: Fixture[] }> {
   return cachedGet<{ fixtures: Fixture[] }>(`${SPORTS_ENDPOINT}/results`, { days }, 30 * 60 * 1000);
 }
 

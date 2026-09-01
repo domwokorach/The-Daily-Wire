@@ -24,7 +24,12 @@ function TopScorersList({ topScorers }: TopScorersListProps) {
           <Typography variant="body2" sx={{ width: 20, color: 'text.disabled', fontWeight: 700 }}>
             {index + 1}
           </Typography>
-          <Avatar src={row.player.photo ?? undefined} sx={{ width: 32, height: 32 }} />
+          <Avatar
+            src={row.player.photo ?? undefined}
+            alt={`${row.player.name} photo`}
+            slotProps={{ img: { loading: 'lazy', decoding: 'async' } }}
+            sx={{ width: 32, height: 32 }}
+          />
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
             <Typography variant="body2" noWrap sx={{ fontWeight: 600, color: 'text.primary' }}>
               {row.player.name}
@@ -33,9 +38,12 @@ function TopScorersList({ topScorers }: TopScorersListProps) {
               {row.team.name}
             </Typography>
           </Box>
+          <Typography variant="caption" color="text.disabled" sx={{ display: { xs: 'none', sm: 'block' }, mr: 0.5 }}>
+            {row.appearances} apps
+          </Typography>
           <Typography
             variant="body1"
-            sx={{ fontFamily: '"Inter", sans-serif', fontWeight: 700, color: 'primary.main' }}
+            sx={{ fontFamily: '"Inter", sans-serif', fontWeight: 700, color: 'primary.main', minWidth: 20, textAlign: 'right' }}
           >
             {row.goals}
           </Typography>

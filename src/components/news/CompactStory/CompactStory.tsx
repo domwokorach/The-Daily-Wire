@@ -4,7 +4,7 @@ import type { Article } from '@/data/mockArticles';
 import { timeAgo } from '@/utils/formatDate';
 import { buildArticlePath } from '@/config/routes';
 import StatusChip from '@/components/common/StatusChip';
-import ImageWithSkeleton from '@/components/common/ImageWithSkeleton';
+import ResponsiveImage from '@/components/common/ResponsiveImage';
 
 interface CompactStoryProps {
   article: Article;
@@ -27,7 +27,7 @@ function CompactStory({ article }: CompactStoryProps) {
       }}
     >
       <Box sx={{ flexShrink: 0, width: { xs: 84, sm: 96 } }}>
-        <ImageWithSkeleton src={article.image} alt={article.headline} aspectRatio="1 / 1">
+        <ResponsiveImage variant="compact" src={article.image} alt={article.headline}>
           {(article.breaking || article.live) && (
             <StatusChip
               status={article.live ? 'live' : 'breaking'}
@@ -43,7 +43,7 @@ function CompactStory({ article }: CompactStoryProps) {
               }}
             />
           )}
-        </ImageWithSkeleton>
+        </ResponsiveImage>
       </Box>
       <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         {article.categoryLabel && (
